@@ -1,16 +1,21 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#define PUSH_INTERFACE 1
-#define PUSH_PROD_ID 21
-#define PUSH_VEND_ID 2536
-#define msleep(x) usleep(x * 1000)
+#include "ParticleManager.h"
 
 ////////////////////
 //  PRIVATE VARS  //
 ////////////////////
 
+//////////////////////
+// PUBLIC FUNCTIONS //
+//////////////////////
+
 int main()
 {
-    
+  ParticleManager * pm = ParticleManager_init();
+  ParticleManager_addParticlesZeroized(pm, 10);
+  ParticleManager_addParticlesZeroized(pm, 54);
+  printf("%li\n", pm->particlesNotInUse);
+  ParticleManager_free(pm);
 }
