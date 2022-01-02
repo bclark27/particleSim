@@ -3,7 +3,8 @@
 
 #include "Common.h"
 #include "List.h"
-#include "ParticleTemp.h"
+#include "Particle.h"
+#include "ParticleFormation.h"
 
 /////////////
 //  TYPES  //
@@ -11,8 +12,8 @@
 
 typedef struct ParticleManager
 {
-  List * particle64List;
-  unsigned long int particlesNotInUse;
+  ParticleFormation * pf;
+  double timeStep;
 } ParticleManager;
 
 /////////////////////////////
@@ -22,7 +23,8 @@ typedef struct ParticleManager
 ParticleManager * ParticleManager_init(void);
 void ParticleManager_free(ParticleManager * pm);
 
-void ParticleManager_addParticlesZeroized(ParticleManager * pm, unsigned int count);
-void ParticleManager_addParticlesPreset(ParticleManager * pm, unsigned int count, ParticleTemp * pt);
+void ParticleManager_setTimeStep(ParticleManager * pm, double timeStep);
+void ParticleManager_addFormation(ParticleManager * pm, ParticleFormation * pf);
+void ParticleManager_updateParticles(ParticleManager * pm);
 
 #endif

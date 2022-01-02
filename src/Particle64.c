@@ -24,23 +24,13 @@ void Particle64_free(void * p64)
   free(p);
 }
 
-void Particle64_setAttributesIndexed(Particle64 * p64, ParticleTemp * pt, unsigned int index)
+void Particle64_setAttributesIndexed(Particle64 * p64, Particle * pt, unsigned int index)
 {
-  memcpy(&p64->position[index], &pt->position, sizeof(Vector));
-  memcpy(&p64->velocity[index], &pt->velocity, sizeof(Vector));
+  memcpy(&p64->particles[index], pt, sizeof(Particle));
 
-  p64->mass[index] = pt->mass;
-  p64->density[index] = pt->density;
-  p64->temp[index] = pt->temp;
-
-  unsigned long int i = 1;
-  i <<= index;
-
-  p64->fixed = (p64->fixed & ~i) | (i * pt->fixed);
-  p64->inUse = (p64->inUse & ~i) | (i * pt->inUse);
 }
 
-void Particle64_setAttributesBlock(Particle64 * p64, ParticleTemp * pt)
+void Particle64_setAttributesBlock(Particle64 * p64, Particle * pt)
 {
   for (int i = 0; i < 64; i++)
   {
@@ -50,24 +40,36 @@ void Particle64_setAttributesBlock(Particle64 * p64, ParticleTemp * pt)
 
 void Particle64_setInUseIndex(Particle64 * p64, unsigned int index, bool inUse)
 {
-  unsigned long int i = 1;
-  i <<= index;
-  p64->inUse = (p64->inUse & ~i) | (i * inUse);
+  p64->particles[index].inUse = inUse;
 }
 
 void Particle64_setInUseBlock(Particle64 * p64, bool inUse)
 {
-  if (inUse)  {p64->inUse = 0xffffffffffffffff;}
-  else        {p64->inUse = 0;}
+  for (int i = 0; i < 64; i++)
+  {
+    Particle64_setInUseIndex(p64, i, inUse);
+  }
 }
 
 bool Particle64_hasNotUsedParticles(Particle64 * p64)
 {
-  return ~p64->inUse;
+  for (int i = 0; i < 64; i++)
+  {
+    if (!p64->particles[i].inUse) return true;
+  }
+  return false;
+}
+
+bool Particle64_hasUsedParticles(Particle64 * p64)
+{
+  for (int i = 0; i < 64; i++)
+  {
+    if (p64->particles[i].inUse) return true;
+  }
+  return false;
 }
 
 bool Particle64_indexIsBeingUsed(Particle64 * p64, unsigned int index)
 {
-  unsigned long int i = 0;
-  return (i << index) & p64->inUse;
+  return p64->particles[index].inUse;
 }

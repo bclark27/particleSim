@@ -1,6 +1,6 @@
 #include "Common.h"
 
-#include "ParticleTemp.h"
+#include "Particle.h"
 
 /////////////////////////////
 //  FUNCTION DECLERATIONS  //
@@ -10,9 +10,9 @@
 //  PUBLIC FUNCTIONS  //
 ////////////////////////
 
-void ParticleTemp_init(ParticleTemp * p)
+void Particle_init(Particle * p)
 {
-  memset(p, 0, sizeof(ParticleTemp));
+  memset(p, 0, sizeof(Particle));
   Vector_zeroize(&p->position);
   Vector_zeroize(&p->velocity);
 

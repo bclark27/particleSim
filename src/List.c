@@ -50,18 +50,6 @@ void sortList(List * list, CompareFunction compFunc)
 
 void destroyList(List * list, FreeDataFunction freeFunc)
 {
-  /*
-  if(!list) return;
-  Link * link = list->head;
-  Link * nextLink = list->head;
-  while(link)
-  {
-    nextLink = link->next;
-    _destroyLink(list, link, freeFunc);
-    link = nextLink;
-  }
-  free(list);
-  */
   clearList(list, freeFunc);
   free(list);
 }

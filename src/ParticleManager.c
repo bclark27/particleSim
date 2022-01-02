@@ -1,7 +1,13 @@
 #include "Common.h"
 
 #include "ParticleManager.h"
+#include "ParticleFormation.h"
 #include "Particle64.h"
+#include "PhysicsUtils.h"
+
+/////////////
+//  TYPES  //
+/////////////
 
 /////////////////////////////
 //  FUNCTION DECLERATIONS  //
@@ -17,90 +23,68 @@ ParticleManager * ParticleManager_init(void)
   if(!pm) return NULL;
   memset(pm, 0, sizeof(ParticleManager));
 
-  pm->particle64List = listInit();
+  pm->timeStep = 1;
+  pm->pf = ParticleFormation_init();
 
   return pm;
 }
 
 void ParticleManager_free(ParticleManager * pm)
 {
-  destroyList(pm->particle64List, Particle64_free);
+  ParticleFormation_free(pm->pf);
   free(pm);
 }
 
-void ParticleManager_addParticlesZeroized(ParticleManager * pm, unsigned int count)
+void ParticleManager_setTimeStep(ParticleManager * pm, double timeStep)
 {
-  ParticleTemp pt;
-  ParticleTemp_init(&pt);
-  ParticleManager_addParticlesPreset(pm, count, &pt);
+  pm->timeStep = timeStep;
 }
 
-void ParticleManager_addParticlesPreset(ParticleManager * pm, unsigned int count, ParticleTemp * pt)
+void ParticleManager_addFormation(ParticleManager * pm, ParticleFormation * pf)
 {
-  if (pm->particlesNotInUse != 0)
+  ParticleFormation_appendParticles(pm->pf, pf);
+}
+
+void ParticleManager_updateParticles(ParticleManager * pm)
+{
+  //update all particle velocities
+  //then update positions according to the new velocities
+
+  ParticleListIter outerLoop;
+  ParticleListIter innerLoop;
+  Particle * baseParticle;
+  Particle * secondParticle;
+
+  // UPDATE VELOCITIES
+
+  ParticleFormation_ParticleIter_init(pm->pf, &outerLoop, 0);
+  baseParticle = ParticleFormation_ParticleIter_next(&outerLoop);
+
+  while (baseParticle)
   {
-    Link * linkPtr = pm->particle64List->head;
-    int toFill = pm->particlesNotInUse;
+    memcpy(&innerLoop, &outerLoop, sizeof(ParticleListIter));
+    secondParticle = ParticleFormation_ParticleIter_next(&innerLoop);
 
-    while (linkPtr && toFill > 0 && count > 0)
+    while (secondParticle)
     {
-      Particle64 * p64 = linkPtr->data;
-      if (Particle64_hasNotUsedParticles(p64))
-      {
-        unsigned long int index = 1;
-        for (int i = 0; i < 64; i++)
-        {
-          if (!Particle64_indexIsBeingUsed(p64, i))//if ((~use) & index)
-          {
-            Particle64_setAttributesIndexed(p64, pt, i);
-            Particle64_setInUseIndex(p64, i, true);
-            count--;
-            toFill--;
-
-            if(count == 0 || toFill == 0)
-            {
-              break;
-            }
-          }
-          index <<= 1;
-        }
-      }
-      linkPtr = linkPtr->next;
+      PhysicsUtils_updateParticalPairVelocities(baseParticle, secondParticle, pm->timeStep);
+      secondParticle = ParticleFormation_ParticleIter_next(&innerLoop);
     }
-
-    pm->particlesNotInUse = toFill;
-    if (count == 0) return;
+    baseParticle = ParticleFormation_ParticleIter_next(&outerLoop);
   }
 
-  int fullBlocks = count / 64;
-  bool partialBlock = (count % 64) != 0;
-  int partialBlockCount = count - (fullBlocks * 64);
+  // UPDATE POSITIONS
 
-  for (int i = 0; i < fullBlocks; i++)
+  ParticleFormation_ParticleIter_init(pm->pf, &outerLoop, 0);
+  baseParticle = ParticleFormation_ParticleIter_next(&outerLoop);
+
+  while (baseParticle)
   {
-    Particle64 * p64 = Particle64_init();
-    Particle64_setAttributesBlock(p64, pt);
-    Particle64_setInUseBlock(p64, true);
-    queue(pm->particle64List, p64);
-  }
-
-  if (partialBlock)
-  {
-    Particle64 * p64 = Particle64_init();
-    for (int i = 0; i < 64; i++)
-    {
-      if (i < partialBlockCount)
-      {
-        Particle64_setInUseIndex(p64, i, true);
-        Particle64_setAttributesIndexed(p64, pt, i);
-      }
-      else
-      {
-        Particle64_setInUseIndex(p64, i, false);
-      }
-    }
-    pm->particlesNotInUse = 64 - partialBlockCount;
-    queue(pm->particle64List, p64);
-
+    PhysicsUtils_updateParticalPosition(baseParticle, pm->timeStep);
+    baseParticle = ParticleFormation_ParticleIter_next(&outerLoop);
   }
 }
+
+////////////////////////
+//  PRIVATE FUNCTIONS //
+////////////////////////

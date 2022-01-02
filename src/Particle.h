@@ -1,5 +1,5 @@
-#ifndef PARTICLE_TEMPT_H_
-#define PARTICLE_TEMPT_H_
+#ifndef PARTICLE_H_
+#define PARTICLE_H_
 
 #include "Common.h"
 
@@ -9,7 +9,7 @@
 //  TYPES  //
 /////////////
 
-typedef struct ParticleTemp
+typedef struct Particle
 {
   //8 byte
   Vector position;
@@ -26,12 +26,12 @@ typedef struct ParticleTemp
   bool fixed;
   bool inUse;
 
-} ParticleTemp;
+} Particle;
 
 /////////////////////////////
 //  FUNCTION DECLERATIONS  //
 /////////////////////////////
 
-void ParticleTemp_init(ParticleTemp * p);
+void Particle_init(Particle * p);
 
 #endif
