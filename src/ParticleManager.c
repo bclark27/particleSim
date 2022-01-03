@@ -26,6 +26,9 @@ ParticleManager * ParticleManager_init(void)
   pm->timeStep = 1;
   pm->pf = ParticleFormation_init();
 
+
+  ParticleFormation_ParticleIter_init(pm->pf, &pm->particleLoop, 0);
+
   return pm;
 }
 
@@ -33,6 +36,16 @@ void ParticleManager_free(ParticleManager * pm)
 {
   ParticleFormation_free(pm->pf);
   free(pm);
+}
+
+void ParticleManager_loopInit(ParticleManager * pm)
+{
+  ParticleFormation_ParticleIter_init(pm->pf, &pm->particleLoop, 0);
+}
+
+Particle * ParticleManager_loopNext(ParticleManager * pm)
+{
+  return ParticleFormation_ParticleIter_next(&pm->particleLoop);
 }
 
 void ParticleManager_setTimeStep(ParticleManager * pm, double timeStep)

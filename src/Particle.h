@@ -12,8 +12,8 @@
 typedef struct Particle
 {
   //8 byte
-  Vector position;
-  Vector velocity;
+  Vec3 position;
+  Vec3 velocity;
 
   //4 byte
   float mass;

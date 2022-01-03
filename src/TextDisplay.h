@@ -6,6 +6,13 @@
 #include "UniversalConstants.h"
 #include "ParticleManager.h"
 #include "Vector.h"
+#include "Camera.h"
+
+///////////////
+//  DEFINES  //
+///////////////
+
+#define PIXEL_DIM 1000
 
 /////////////
 //  TYPES  //
@@ -13,15 +20,16 @@
 
 typedef struct TextDisplay
 {
-  struct winsize w;
-  double unitWidth;
-  double unitHeight;
-
-  Vector position;
-  Vector facing;
-  Vector pojectionPlane[2];
   //row = w.ws_row
   //col = w.ws_col
+  struct winsize w;
+
+  int width;
+  int height;
+  unsigned char pixels[PIXEL_DIM][PIXEL_DIM];
+  unsigned char ** text;
+  int textLen;
+
 } TextDisplay;
 
 /////////////////////////////
@@ -31,5 +39,5 @@ typedef struct TextDisplay
 TextDisplay * TextDisplay_init(void);
 void TextDisplay_free(TextDisplay * td);
 
-void TextDisplay_display(ParticleManager * pm);
+void TextDisplay_display(TextDisplay * td, ParticleManager * pm, Camera * cam);
 #endif

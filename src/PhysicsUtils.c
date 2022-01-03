@@ -12,8 +12,8 @@
 //  PRIVATE VARS  //
 ////////////////////
 
-Vector unitVec1;
-Vector unitVec2;
+Vec3 unitVec1;
+Vec3 unitVec2;
 
 /////////////////////////////
 //  FUNCTION DECLERATIONS  //

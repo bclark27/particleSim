@@ -13,6 +13,7 @@
 typedef struct ParticleManager
 {
   ParticleFormation * pf;
+  ParticleListIter particleLoop;
   double timeStep;
 } ParticleManager;
 
@@ -22,6 +23,9 @@ typedef struct ParticleManager
 
 ParticleManager * ParticleManager_init(void);
 void ParticleManager_free(ParticleManager * pm);
+
+void ParticleManager_loopInit(ParticleManager * pm);
+Particle * ParticleManager_loopNext(ParticleManager * pm);
 
 void ParticleManager_setTimeStep(ParticleManager * pm, double timeStep);
 void ParticleManager_addFormation(ParticleManager * pm, ParticleFormation * pf);
