@@ -23,9 +23,10 @@ void printText(TextDisplay * td);
 //  PRIVATE VARIABLES  //
 /////////////////////////
 
-int textLevelsLen = 67;
-const char textLevels[] = "$@B%8&WM#*oahkbdpqwmZO0QLCJUYXzcvunxrjft/|()1{}[]?-_+~i!lI;:,\"^`\". ";
-
+//int textLevelsLen = 67;
+//const char textLevels[] = "$@B%8&WM#*oahkbdpqwmZO0QLCJUYXzcvunxrjft/|()1{}[]?-_+~i!lI;:,\"^`\". ";
+int textLevelsLen = 11;
+const char textLevels[] = " .:/*^%&$#@";
 ////////////////////////
 //  PUBLIC FUNCTIONS  //
 ////////////////////////
@@ -48,11 +49,7 @@ TextDisplay * TextDisplay_init(void)
 
 void TextDisplay_free(TextDisplay * td)
 {
-  if (td->text != NULL)
-  {
-
-  }
-
+  freeText(td);
   free(td);
 }
 
@@ -77,8 +74,29 @@ void TextDisplay_display(TextDisplay * td, ParticleManager * pm, Camera * cam)
       pixX = (0.5 * (ans.x + 1)) * PIXEL_DIM;
       pixY = (1 - (ans.y + 1) * 0.5) * PIXEL_DIM;
       //printf("%i, %i\n", pixX, pixY);
-      td->pixels[pixY][pixX] = 255;
+      double objRadius = cbrt((3 * p->mass) / (4 * PI * p->density));
+      double dist = Vector_distance(&cam->cameraPosition, &p->position);
+      if (dist == 0) continue;
+
+      double brightness = 1 - (dist / cam->farPlane);
+      double fovRadius = dist * atan(DEG_TO_RAD(cam->fov) / 2);
+      double screenRadius = (objRadius / fovRadius) * PIXEL_DIM;
+
+      //printf("%lf\n", screenRadius);
+
+      //td->pixels[pixY][pixX] = 255 * dist;
+      for (int dy = -screenRadius; dy < screenRadius; dy++)
+      {
+        for (int dx = -screenRadius; dx < screenRadius; dx++)
+        {
+          int x = pixX + dx;
+          int y = pixY + dy;
+          if (x < 0 || y < 0 || x >= PIXEL_DIM || y >= PIXEL_DIM || (dx * dx + dy * dy) > screenRadius * screenRadius) continue;
+          td->pixels[x][y] = 255 * brightness;
+        }
+      }
     }
+
     p = ParticleManager_loopNext(pm);
   }
 
@@ -174,10 +192,13 @@ void pixelsToText(TextDisplay * td)
           int dy = k + y * yScale;
 
           value += td->pixels[dy][dx];
+          //if (td->pixels[dy][dx] > 0) printf("%i\n", td->pixels[dy][dx]);
         }
       }
 
-      value = MIN(255, value);
+      value /= xScale * yScale;//MIN(255, value);
+
+
 
       td->text[y + yAsciiOffset][x + xAsciiOffset] = value;
     }
@@ -213,7 +234,7 @@ void printText(TextDisplay * td)
       if (x >= xAsciiOffset && x < xAsciiOffset + xSideLen &&
           y >= yAsciiOffset && y < yAsciiOffset + ySideLen)
       {
-        int level = (textLevelsLen - 1) - td->text[y][x] * ratio;
+        int level = td->text[y][x] * ratio;
         char c = textLevels[level];
         printf("%c", c);
       }

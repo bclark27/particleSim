@@ -22,7 +22,7 @@ Camera * Camera_init(void)
   Vector_zeroizeVec44(&cam->projectionMatrix);
   cam->nearPlane = 1;
   cam->farPlane = 200000;
-  cam->fov = 90;
+  cam->fov = 70;
 
   Camera_updateProjMatrix(cam);
 

@@ -38,10 +38,12 @@ void PhysicsUtils_updateParticalPairVelocities(Particle * p1, Particle * p2, dou
   double a2 = BIG_G * (p1->mass / r2);
 
   Vector_difference(&unitVec1, &p2->position, &p1->position);
-  Vector_difference(&unitVec2, &p1->position, &p2->position);
 
   Vector_normalize(&unitVec1);
-  Vector_normalize(&unitVec2);
+
+  unitVec2.x = -unitVec1.x;
+  unitVec2.y = -unitVec1.y;
+  unitVec2.z = -unitVec1.z;
 
   Vector_scale(&unitVec1, a1 * timseStep);
   Vector_scale(&unitVec2, a2 * timseStep);

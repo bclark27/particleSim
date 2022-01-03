@@ -70,6 +70,9 @@ void ParticleFormation_cloudFormation(ParticleFormation * pf, unsigned int parti
 
     p.mass = avgParticleMass + (RAND_DOUBLE * avgParticleMass * massRand);
 
+    //Vec3 vel = {0, 0, -0.01};
+    //p.velocity = vel;
+
     memcpy(&p64->particles[i % 64], &p, sizeof(Particle));
 
     if ((i % 64) == 63 || i == particleCount - 1)

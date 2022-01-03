@@ -16,8 +16,8 @@ void Particle_init(Particle * p)
   Vector_zeroize(&p->position);
   Vector_zeroize(&p->velocity);
 
-  p->mass = 0;
-  p->density = 0;
+  p->mass = 1;
+  p->density = 1;
   p->temp = 0;
 
   p->fixed = false;
