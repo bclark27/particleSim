@@ -24,6 +24,8 @@ Camera * Camera_init(void)
   cam->farPlane = 200000;
   cam->fov = 90;
 
+  Camera_updateProjMatrix(cam);
+
   return cam;
 }
 
@@ -98,9 +100,20 @@ bool Camera_projectVec3Point(Camera * cam, Vec3 * v, Vec3 * ans)
 void Camera_setPosition(Camera * cam, Vec3 * pos)
 {
   memcpy(&cam->cameraPosition, pos, sizeof(Vec3));
+  Camera_updateProjMatrix(cam);
+}
+
+void Camera_moveCameraPosition(Camera * cam, Vec3 * deltaPos)
+{
+  cam->cameraPosition.x += deltaPos->x;
+  cam->cameraPosition.y += deltaPos->y;
+  cam->cameraPosition.z += deltaPos->z;
+
+  Camera_updateProjMatrix(cam);
 }
 
 void Camera_setRotation(Camera * cam, Vec3 * angles)
 {
   memcpy(&cam->cameraRotation, angles, sizeof(Vec3));
+  Camera_updateProjMatrix(cam);
 }

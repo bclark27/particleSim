@@ -31,5 +31,6 @@ void Camera_updateProjMatrix(Camera * cam);
 //returns true if the vector is in the frame
 bool Camera_projectVec3Point(Camera * cam, Vec3 * v, Vec3 * ans);
 void Camera_setPosition(Camera * cam, Vec3 * pos);
+void Camera_moveCameraPosition(Camera * cam, Vec3 * deltaPos);
 void Camera_setRotation(Camera * cam, Vec3 * angles);
 #endif

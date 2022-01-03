@@ -19,27 +19,28 @@ int main()
   ParticleManager_setTimeStep(pm, 10);
 
   Camera * cam = Camera_init();
-  Camera_updateProjMatrix(cam);
+  Vec3 deltaPos = {0,0,0};
+  Camera_moveCameraPosition(cam, &deltaPos);
 
   TextDisplay * td = TextDisplay_init();
 
 
   ParticleFormation * pf = ParticleFormation_init();
-  ParticleFormation_cloudFormation(pf, 3, 0, 0, -10, 1, 10, 0.1, 0.1, 0.1);
+  ParticleFormation_cloudFormation(pf, 10000, 0, 0, -10, 1, 10, 0.1, 0.1, 0.1);
   ParticleManager_addFormation(pm, pf);
   ParticleFormation_free(pf);
 
   //Vector_printVec3(&((Particle64 *)(pm->pf->particle64List->head->data))->particles[0].position);
   //Vector_printVec3(&((Particle64 *)(pm->pf->particle64List->head->data))->particles[1].position);
   unsigned long int i = 0;
-  unsigned int skip = 100000;
+  unsigned int skip = 1;
   while(true)//for (int i = 0; i < 10000000; i++)
   {
     ParticleManager_updateParticles(pm);
     if (i % skip == 0)
     {
-      //Vector_printVec3(&((Particle64 *)(pm->pf->particle64List->head->data))->particles[0].position);
-      TextDisplay_display(td, pm, cam);
+      printf("%li\n", i / skip);
+      //TextDisplay_display(td, pm, cam);
     }
     i++;
   }
