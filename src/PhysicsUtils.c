@@ -23,7 +23,7 @@ Vec3 unitVec2;
 //  PUBLIC FUNCTIONS  //
 ////////////////////////
 
-void PhysicsUtils_updateParticalPairVelocities(Particle * p1, Particle * p2, double timseStep)
+void PhysicsUtils_updateParticalPairVelocities(Particle * p1, Particle * p2, double timeStep)
 {
 
   double r = Vector_distance(&p1->position, &p2->position);
@@ -45,8 +45,8 @@ void PhysicsUtils_updateParticalPairVelocities(Particle * p1, Particle * p2, dou
   unitVec2.y = -unitVec1.y;
   unitVec2.z = -unitVec1.z;
 
-  Vector_scale(&unitVec1, a1 * timseStep);
-  Vector_scale(&unitVec2, a2 * timseStep);
+  Vector_scale(&unitVec1, a1 * timeStep);
+  Vector_scale(&unitVec2, a2 * timeStep);
 
   Vector_add(&p1->velocity, &unitVec1);
   Vector_add(&p2->velocity, &unitVec2);
@@ -54,7 +54,7 @@ void PhysicsUtils_updateParticalPairVelocities(Particle * p1, Particle * p2, dou
   //Vector_print(&p1->velocity);
 }
 
-void PhysicsUtils_updateParticalPosition(Particle * p, double timseStep)
+void PhysicsUtils_updateParticalPosition(Particle * p)
 {
   if (p->fixed) return;
   p->position.x += p->velocity.x;

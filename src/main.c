@@ -4,6 +4,7 @@
 #include "ParticleManager.h"
 #include "Camera.h"
 #include "TextDisplay.h"
+#include "CubeUnit.h"
 
 ////////////////////
 //  PRIVATE VARS  //
@@ -17,7 +18,7 @@ int main()
 {
 
   ParticleManager * pm = ParticleManager_init();
-  ParticleManager_setTimeStep(pm, 0.0);
+  ParticleManager_setTimeStep(pm, 0.5);
 
   Camera * cam = Camera_init();
   Vec3 deltaPos = {0, 0, 40};
@@ -42,7 +43,7 @@ int main()
 
   double theta = 0;
   double dist = 70;
-  double rotation = 0.0003;
+  double rotation = 0.000;
 
   while(true)//for (int i = 0; i < 10000000; i++)
   {

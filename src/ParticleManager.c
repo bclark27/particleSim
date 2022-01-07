@@ -83,7 +83,7 @@ void ParticleManager_updateParticles(ParticleManager * pm)
   for (unsigned int i = 0; i < pm->length; i++)
   {
     if (!pm->particles[i].inUse) continue;
-    PhysicsUtils_updateParticalPosition(&pm->particles[i], pm->timeStep);
+    PhysicsUtils_updateParticalPosition(&pm->particles[i]);
   }
 }
 

@@ -12,7 +12,7 @@
 //  FUNCTION DECLERATIONS  //
 /////////////////////////////
 
-void PhysicsUtils_updateParticalPairVelocities(Particle * p1, Particle * p2, double timseStep);
-void PhysicsUtils_updateParticalPosition(Particle * p, double timseStep);
+void PhysicsUtils_updateParticalPairVelocities(Particle * p1, Particle * p2, double timeStep);
+void PhysicsUtils_updateParticalPosition(Particle * p);
 
 #endif
