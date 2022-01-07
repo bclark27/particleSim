@@ -78,21 +78,24 @@ void TextDisplay_display(TextDisplay * td, ParticleManager * pm, Camera * cam)
       double dist = Vector_distance(&cam->cameraPosition, &p->position);
       if (dist == 0) continue;
 
-      double brightness = 1 - (dist / cam->farPlane);
       double fovRadius = dist * atan(DEG_TO_RAD(cam->fov) / 2);
       double screenRadius = (objRadius / fovRadius) * PIXEL_DIM;
 
       //printf("%lf\n", screenRadius);
 
       //td->pixels[pixY][pixX] = 255 * dist;
+      double brightness = MAX(MIN(1000, p->density), 0) / 1000.0;//1 - (dist / cam->farPlane);
       for (int dy = -screenRadius; dy < screenRadius; dy++)
       {
         for (int dx = -screenRadius; dx < screenRadius; dx++)
         {
           int x = pixX + dx;
           int y = pixY + dy;
-          if (x < 0 || y < 0 || x >= PIXEL_DIM || y >= PIXEL_DIM || (dx * dx + dy * dy) > screenRadius * screenRadius) continue;
-          td->pixels[x][y] = 255 * brightness;
+          if (x < 0 || y < 0 || x >= PIXEL_DIM || y >= PIXEL_DIM ||
+            (dx * dx + dy * dy) > screenRadius * screenRadius
+            || ans.z >= td->zbuffer[y][x]) continue;
+          td->pixels[y][x] = 255 * brightness;
+          td->zbuffer[y][x] = ans.z;
         }
       }
     }
@@ -146,6 +149,8 @@ void freeText(TextDisplay * td)
 void clearPixels(TextDisplay * td)
 {
   memset(&td->pixels, 0, PIXEL_DIM * PIXEL_DIM);
+  for (int i = 0; i < PIXEL_DIM; i++) for (int k = 0; k < PIXEL_DIM; k++)
+    td->zbuffer[i][k] = 2;
 }
 
 void clearText(TextDisplay * td)

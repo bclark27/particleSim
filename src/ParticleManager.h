@@ -12,9 +12,11 @@
 
 typedef struct ParticleManager
 {
-  ParticleFormation * pf;
-  ParticleListIter particleLoop;
+  Particle * particles;
   double timeStep;
+  unsigned int length;
+  unsigned int currIndex;
+  Particle * currParticle;
 } ParticleManager;
 
 /////////////////////////////

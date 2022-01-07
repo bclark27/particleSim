@@ -12,7 +12,8 @@
 #define PI 3.14159265
 
 #define RAND_DOUBLE (((rand() / (double)RAND_MAX) * 2) - 1)
-#define DEG_TO_RAD(x) ((x) * (PI / (double)180))
+#define DEG_TO_RAD(x) ((x) * (PI / 180.0))
+#define RAD_TO_DED(x) ((x) * 180.0 / PI)
 
 #define MIN(a,b) (((a)<(b))?(a):(b))
 #define MAX(a,b) (((a)>(b))?(a):(b))

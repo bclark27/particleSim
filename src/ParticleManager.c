@@ -2,7 +2,6 @@
 
 #include "ParticleManager.h"
 #include "ParticleFormation.h"
-#include "Particle64.h"
 #include "PhysicsUtils.h"
 
 /////////////
@@ -24,28 +23,33 @@ ParticleManager * ParticleManager_init(void)
   memset(pm, 0, sizeof(ParticleManager));
 
   pm->timeStep = 1;
-  pm->pf = ParticleFormation_init();
-
-
-  ParticleFormation_ParticleIter_init(pm->pf, &pm->particleLoop, 0);
+  pm->particles = NULL;
+  pm->length = 0;
+  pm->currIndex = 0;
 
   return pm;
 }
 
 void ParticleManager_free(ParticleManager * pm)
 {
-  ParticleFormation_free(pm->pf);
+  free(pm->particles);
   free(pm);
 }
 
 void ParticleManager_loopInit(ParticleManager * pm)
 {
-  ParticleFormation_ParticleIter_init(pm->pf, &pm->particleLoop, 0);
+  pm->currParticle = pm->particles;
+  pm->currIndex = 0;
 }
 
 Particle * ParticleManager_loopNext(ParticleManager * pm)
 {
-  return ParticleFormation_ParticleIter_next(&pm->particleLoop);
+  if (pm->currIndex >= pm->length) return NULL;
+
+  Particle * p = pm->currParticle;
+  pm->currParticle++;
+  pm->currIndex++;
+  return p;
 }
 
 void ParticleManager_setTimeStep(ParticleManager * pm, double timeStep)
@@ -55,46 +59,31 @@ void ParticleManager_setTimeStep(ParticleManager * pm, double timeStep)
 
 void ParticleManager_addFormation(ParticleManager * pm, ParticleFormation * pf)
 {
-  ParticleFormation_appendParticles(pm->pf, pf);
+  Particle * newParticles = malloc(sizeof(Particle) * (pf->length + pm->length));
+  memcpy(newParticles, pm->particles, sizeof(Particle) * pm->length);
+  memcpy(newParticles + pm->length, pf->particles, sizeof(Particle) * pf->length);
+  free(pm->particles);
+  pm->particles = newParticles;
+  pm->length += pf->length;
+
 }
 
 void ParticleManager_updateParticles(ParticleManager * pm)
 {
-  //update all particle velocities
-  //then update positions according to the new velocities
-
-  ParticleListIter outerLoop;
-  ParticleListIter innerLoop;
-  Particle * baseParticle;
-  Particle * secondParticle;
-
-  // UPDATE VELOCITIES
-
-  ParticleFormation_ParticleIter_init(pm->pf, &outerLoop, 0);
-  baseParticle = ParticleFormation_ParticleIter_next(&outerLoop);
-
-  while (baseParticle)
+  for (unsigned int i = 0; i < pm->length; i++)
   {
-    memcpy(&innerLoop, &outerLoop, sizeof(ParticleListIter));
-    secondParticle = ParticleFormation_ParticleIter_next(&innerLoop);
-
-    while (secondParticle)
-    {
-      PhysicsUtils_updateParticalPairVelocities(baseParticle, secondParticle, pm->timeStep);
-      secondParticle = ParticleFormation_ParticleIter_next(&innerLoop);
-    }
-    baseParticle = ParticleFormation_ParticleIter_next(&outerLoop);
+    if (!pm->particles[i].inUse) continue;
+      for (unsigned int k = i + 1; k < pm->length; k++)
+      {
+        if (!pm->particles[k].inUse) continue;
+        PhysicsUtils_updateParticalPairVelocities(&pm->particles[i], &pm->particles[k], pm->timeStep);
+      }
   }
 
-  // UPDATE POSITIONS
-
-  ParticleFormation_ParticleIter_init(pm->pf, &outerLoop, 0);
-  baseParticle = ParticleFormation_ParticleIter_next(&outerLoop);
-
-  while (baseParticle)
+  for (unsigned int i = 0; i < pm->length; i++)
   {
-    PhysicsUtils_updateParticalPosition(baseParticle, pm->timeStep);
-    baseParticle = ParticleFormation_ParticleIter_next(&outerLoop);
+    if (!pm->particles[i].inUse) continue;
+    PhysicsUtils_updateParticalPosition(&pm->particles[i], pm->timeStep);
   }
 }
 

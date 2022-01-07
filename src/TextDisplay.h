@@ -27,6 +27,7 @@ typedef struct TextDisplay
   int width;
   int height;
   unsigned char pixels[PIXEL_DIM][PIXEL_DIM];
+  double zbuffer[PIXEL_DIM][PIXEL_DIM];
   unsigned char ** text;
   int textLen;
 

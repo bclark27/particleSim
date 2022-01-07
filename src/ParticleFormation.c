@@ -1,6 +1,7 @@
 #include "Common.h"
 
 #include "ParticleFormation.h"
+#include "UniversalConstants.h"
 
 /////////////
 //  TYPES  //
@@ -11,7 +12,8 @@
 //  FUNCTION DECLERATIONS  //
 /////////////////////////////
 
-void addParticle64ToFormation(ParticleFormation * pf, Particle64 * p64);
+void setParticleArraySize(ParticleFormation * pf, unsigned int size);
+void generateOribitingPair(Particle * p1, Particle * p2, double distance, double m1, double m2);
 
 ////////////////////////
 //  PUBLIC FUNCTIONS  //
@@ -22,103 +24,71 @@ ParticleFormation * ParticleFormation_init()
   ParticleFormation * pf = malloc(sizeof(ParticleFormation));
   memset(pf, 0, sizeof(ParticleFormation));
 
-  pf->particle64List = listInit();
-  pf->particlesNotInUse = 0;
-  pf->particleCount = 0;
-
   return pf;
 }
 
 void ParticleFormation_free(ParticleFormation * pf)
 {
-  destroyList(pf->particle64List, Particle64_free);
+  free(pf->particles);
   free(pf);
 }
 
-void ParticleFormation_appendParticles(ParticleFormation * dest, ParticleFormation * src)
-{
-  dest->particlesNotInUse += src->particlesNotInUse;
-  dest->particleCount += src->particleCount;
-
-  unsigned int blockCount = listLen(src->particle64List);
-  Link * currLink = src->particle64List->head;
-
-  for (int i = 0; i < blockCount; i++)
-  {
-    Particle64 * p64 = Particle64_init();
-    memcpy(p64, currLink->data, sizeof(Particle64));
-    queue(dest->particle64List, p64);
-    currLink = currLink->next;
-  }
-}
-
-void ParticleFormation_cloudFormation(ParticleFormation * pf, unsigned int particleCount, double x, double y, double z, double avgParticleMass, double radius, double randomness, double velRand, double massRand)
+void ParticleFormation_cloudFormation(ParticleFormation * pf, unsigned int particleCount, double x, double y, double z, double avgParticleMass, double avgDensity, double radius, double velRand, double massRand, double densityRand)
 {
   if (particleCount == 0) return;
-  pf->particleCount = particleCount;
-  pf->particlesNotInUse = 64 - (particleCount % 64);
 
-  Particle p;
-  Particle64 * p64 = Particle64_init();
+  setParticleArraySize(pf, particleCount);
+
   for (unsigned int i = 0; i < particleCount; i++)
   {
-    Particle_init(&p);
+    Particle_init(&(pf->particles[i]));
 
-    p.position.x = x + (RAND_DOUBLE * radius);
-    p.position.y = y + (RAND_DOUBLE * radius);
-    p.position.z = z + (RAND_DOUBLE * radius);
+    pf->particles[i].position.x = x + (RAND_DOUBLE * radius);
+    pf->particles[i].position.y = y + (RAND_DOUBLE * radius);
+    pf->particles[i].position.z = z + (RAND_DOUBLE * radius);
 
-    p.mass = avgParticleMass + (RAND_DOUBLE * avgParticleMass * massRand);
+    pf->particles[i].mass = avgParticleMass + (RAND_DOUBLE * avgParticleMass * massRand);
 
-    //Vec3 vel = {0, 0, -0.01};
-    //p.velocity = vel;
-
-    memcpy(&p64->particles[i % 64], &p, sizeof(Particle));
-
-    if ((i % 64) == 63 || i == particleCount - 1)
-    {
-      addParticle64ToFormation(pf, p64);
-      p64 = Particle64_init();
-    }
+    pf->particles[i].density = avgDensity + (RAND_DOUBLE * avgDensity * densityRand);
   }
 }
 
-void ParticleFormation_ParticleIter_init(ParticleFormation * pf, ParticleListIter * iter, unsigned int startIndex)
+void ParticleFormation_orbit(ParticleFormation * pf, double distance, double x, double y, double z, double m1, double m2)
 {
-  memset(iter, 0, sizeof(ParticleListIter));
-  iter->currentLink = pf->particle64List->head;
-  for (int i = 0; i < (startIndex / 64); i++) iter->currentLink = iter->currentLink->next;
-  iter->currentParticle = startIndex % 64;
-}
+  Particle p1;
+  Particle p2;
 
-Particle * ParticleFormation_ParticleIter_next(ParticleListIter * iter)
-{
-  if (iter->currentLink)
-  {
-    while (iter->currentLink)
-    {
-      Particle64 * p64 = iter->currentLink->data;
-      for (int i = iter->currentParticle; i < 64; i++)
-      {
-
-        if (p64->particles[i].inUse)
-        {
-          iter->currentParticle = i + 1;
-          return &p64->particles[i];
-        }
-      }
-      iter->currentParticle = 0;
-      iter->currentLink = iter->currentLink->next;
-    }
-  }
-  return NULL;
+  setParticleArraySize(pf, 2);
+  generateOribitingPair(&p1, &p2, distance, m1, m2);
+  pf->particles[0] = p1;
+  pf->particles[1] = p2;
 }
 
 /////////////////////////
 //  PRIVATE FUNCTIONS  //
 /////////////////////////
 
-void addParticle64ToFormation(ParticleFormation * pf, Particle64 * p64)
+void setParticleArraySize(ParticleFormation * pf, unsigned int size)
 {
-  queue(pf->particle64List, p64);
+  if (pf->particles) free(pf->particles);
+  pf->particles = malloc(sizeof(Particle) * size);
+  pf->length = size;
+}
+
+void generateOribitingPair(Particle * p1, Particle * p2, double distance, double m1, double m2)
+{
+  double baryCenter1 = distance / (1 + (m1 / m2));
+  double baryCenter2 = distance / (1 + (m2 / m1));
+
+  Particle_init(p1);
+  Particle_init(p2);
+
+  p1->mass = m1;
+  p2->mass = m2;
+
+  p1->position.x = -baryCenter1;
+  p2->position.x = baryCenter2;
+
+  p1->velocity.z = -(BIG_G * m2 / (distance * distance));
+  p1->velocity.z = (BIG_G * m1 / (distance * distance));
 }
