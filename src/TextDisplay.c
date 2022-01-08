@@ -105,6 +105,7 @@ void TextDisplay_display(TextDisplay * td, ParticleManager * pm, Camera * cam)
 
   clearText(td);
   pixelsToText(td);
+  //printf("FRAME\n");
   printText(td);
 }
 

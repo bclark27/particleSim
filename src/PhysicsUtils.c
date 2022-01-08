@@ -25,11 +25,9 @@ Vec3 unitVec2;
 
 void PhysicsUtils_updateParticalPairVelocities(Particle * p1, Particle * p2, double timeStep)
 {
-
+  timeStep = 1;
   double r = Vector_distance(&p1->position, &p2->position);
   double r2 = r * r;
-
-  //printf("%lf\n", r);
 
   // F = G * (m1 * m2) / r^2
   // a = F / m
@@ -51,14 +49,48 @@ void PhysicsUtils_updateParticalPairVelocities(Particle * p1, Particle * p2, dou
   Vector_add(&p1->velocity, &unitVec1);
   Vector_add(&p2->velocity, &unitVec2);
 
-  //Vector_print(&p1->velocity);
 }
 
-void PhysicsUtils_updateParticalPosition(Particle * p)
+void PhysicsUtils_updateSingleParticalVelocity(Particle * p1, Particle * p2, double timeStep)
 {
+  timeStep = 1;
+  double r = Vector_distance(&p1->position, &p2->position);
+  double r2 = r * r;
+
+  // F = G * (m1 * m2) / r^2
+  // a = F / m
+
+  double a1 = BIG_G * (p2->mass / r2);
+
+  Vector_difference(&unitVec1, &p2->position, &p1->position);
+  Vector_normalize(&unitVec1);
+  Vector_scale(&unitVec1, a1 * timeStep);
+  Vector_add(&p1->velocity, &unitVec1);
+}
+
+void PhysicsUtils_updateSingleParticalVelocityFast(Particle * p1, Vec3 * vec, double mass, double timeStep)
+{
+  timeStep = 1;
+  double r = Vector_distance(&p1->position, vec);
+  double r2 = r * r;
+
+  // F = G * (m1 * m2) / r^2
+  // a = F / m
+
+  double a1 = BIG_G * (mass / r2);
+
+  Vector_difference(&unitVec1, vec, &p1->position);
+  Vector_normalize(&unitVec1);
+  Vector_scale(&unitVec1, a1 * timeStep);
+  Vector_add(&p1->velocity, &unitVec1);
+}
+
+void PhysicsUtils_updateParticalPosition(Particle * p, double timeStep)
+{
+
   if (p->fixed) return;
-  p->position.x += p->velocity.x;
-  p->position.y += p->velocity.y;
-  p->position.z += p->velocity.z;
+  p->position.x += p->velocity.x * timeStep;
+  p->position.y += p->velocity.y * timeStep;
+  p->position.z += p->velocity.z * timeStep;
   //printf("%lf\n", p->velocity.x);
 }

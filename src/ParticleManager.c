@@ -1,6 +1,7 @@
 #include "Common.h"
 
 #include "ParticleManager.h"
+#include "OctTree.h"
 #include "ParticleFormation.h"
 #include "PhysicsUtils.h"
 
@@ -16,7 +17,7 @@
 //  PUBLIC FUNCTIONS  //
 ////////////////////////
 
-ParticleManager * ParticleManager_init(void)
+ParticleManager * ParticleManager_init(double spaceSize, double thetaAccuracy)
 {
   ParticleManager * pm = malloc(sizeof(ParticleManager));
   if(!pm) return NULL;
@@ -26,6 +27,8 @@ ParticleManager * ParticleManager_init(void)
   pm->particles = NULL;
   pm->length = 0;
   pm->currIndex = 0;
+  pm->spaceCubeSideLength = spaceSize;
+  pm->thetaAccuracy = thetaAccuracy;
 
   return pm;
 }
@@ -49,6 +52,9 @@ Particle * ParticleManager_loopNext(ParticleManager * pm)
   Particle * p = pm->currParticle;
   pm->currParticle++;
   pm->currIndex++;
+
+  if (!pm->currParticle->inUse) return ParticleManager_loopNext(pm);
+
   return p;
 }
 
@@ -65,26 +71,39 @@ void ParticleManager_addFormation(ParticleManager * pm, ParticleFormation * pf)
   free(pm->particles);
   pm->particles = newParticles;
   pm->length += pf->length;
-
 }
 
 void ParticleManager_updateParticles(ParticleManager * pm)
 {
+  Vec3 zero = {0, 0, 0};
+  OctTree * ot = OctTree_init(&zero, pm->spaceCubeSideLength);
+
   for (unsigned int i = 0; i < pm->length; i++)
   {
     if (!pm->particles[i].inUse) continue;
-      for (unsigned int k = i + 1; k < pm->length; k++)
-      {
-        if (!pm->particles[k].inUse) continue;
-        PhysicsUtils_updateParticalPairVelocities(&pm->particles[i], &pm->particles[k], pm->timeStep);
-      }
+
+    if (!OctTree_insertParticle(ot, &pm->particles[i]))
+    {
+      pm->particles[i].inUse = false;
+    }
   }
 
   for (unsigned int i = 0; i < pm->length; i++)
   {
     if (!pm->particles[i].inUse) continue;
-    PhysicsUtils_updateParticalPosition(&pm->particles[i]);
+    OctTree_updateVelocitySingle(ot, pm->thetaAccuracy, pm->timeStep, &pm->particles[i]);
   }
+
+  for (unsigned int i = 0; i < pm->length; i++)
+  {
+    if (!pm->particles[i].inUse) continue;
+    PhysicsUtils_updateParticalPosition(&pm->particles[i], pm->timeStep);
+  }
+
+  //OctTree_updateVelocities(ot, pm->thetaAccuracy, pm->timeStep);
+  //OctTree_updatePositions(ot, pm->timeStep);
+
+  OctTree_free(ot, false);
 }
 
 ////////////////////////

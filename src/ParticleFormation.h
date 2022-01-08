@@ -26,4 +26,5 @@ void ParticleFormation_free(ParticleFormation * pf);
 void ParticleFormation_appendParticles(ParticleFormation * dest, ParticleFormation * src);
 void ParticleFormation_cloudFormation(ParticleFormation * pf, unsigned int particleCount, double x, double y, double z, double avgParticleMass, double avgDensity, double radius, double velRand, double massRand, double densityRand);
 void ParticleFormation_orbit(ParticleFormation * pf, double distance, double x, double y, double z, double m1, double m2);
+void ParticleFormation_singularity(ParticleFormation * pf, double x, double y, double z, double mass);
 #endif

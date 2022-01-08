@@ -47,6 +47,10 @@ void ParticleFormation_cloudFormation(ParticleFormation * pf, unsigned int parti
     pf->particles[i].position.y = y + (RAND_DOUBLE * radius);
     pf->particles[i].position.z = z + (RAND_DOUBLE * radius);
 
+    pf->particles[i].velocity.x = x + (RAND_DOUBLE * velRand);
+    pf->particles[i].velocity.y = y + (RAND_DOUBLE * velRand);
+    pf->particles[i].velocity.z = z + (RAND_DOUBLE * velRand);
+
     pf->particles[i].mass = avgParticleMass + (RAND_DOUBLE * avgParticleMass * massRand);
 
     pf->particles[i].density = avgDensity + (RAND_DOUBLE * avgDensity * densityRand);
@@ -62,6 +66,26 @@ void ParticleFormation_orbit(ParticleFormation * pf, double distance, double x, 
   generateOribitingPair(&p1, &p2, distance, m1, m2);
   pf->particles[0] = p1;
   pf->particles[1] = p2;
+}
+
+void ParticleFormation_singularity(ParticleFormation * pf, double x, double y, double z, double mass)
+{
+  Particle p;
+  Particle_init(&p);
+
+  p.position.x = x;
+  p.position.y = y;
+  p.position.z = z;
+
+  p.mass = mass;
+
+  p.density *= 200;
+
+  setParticleArraySize(pf, 1);
+
+  p.fixed = true;
+
+  pf->particles[0] = p;
 }
 
 /////////////////////////

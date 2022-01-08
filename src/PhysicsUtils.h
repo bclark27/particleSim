@@ -13,6 +13,8 @@
 /////////////////////////////
 
 void PhysicsUtils_updateParticalPairVelocities(Particle * p1, Particle * p2, double timeStep);
-void PhysicsUtils_updateParticalPosition(Particle * p);
+void PhysicsUtils_updateSingleParticalVelocity(Particle * p1, Particle * p2, double timeStep);
+void PhysicsUtils_updateSingleParticalVelocityFast(Particle * p1, Vec3 * vec, double mass, double timeStep);
+void PhysicsUtils_updateParticalPosition(Particle * p, double timeStep);
 
 #endif

@@ -2,9 +2,10 @@
 #include <stdlib.h>
 
 #include "ParticleManager.h"
+#include "Particle.h"
 #include "Camera.h"
 #include "TextDisplay.h"
-#include "CubeUnit.h"
+#include "OctTree.h"
 
 ////////////////////
 //  PRIVATE VARS  //
@@ -16,12 +17,11 @@
 
 int main()
 {
-
-  ParticleManager * pm = ParticleManager_init();
-  ParticleManager_setTimeStep(pm, 0.5);
+  ParticleManager * pm = ParticleManager_init(1000, 0.9);
+  ParticleManager_setTimeStep(pm, 10);
 
   Camera * cam = Camera_init();
-  Vec3 deltaPos = {0, 0, 40};
+  Vec3 deltaPos = {0, 0, 300};
   Camera_moveCameraPosition(cam, &deltaPos);
   Vec3 angles = {0, 0, 0};
   //Camera_setRotation(cam, &angles);
@@ -31,18 +31,22 @@ int main()
 
 
   ParticleFormation * pf = ParticleFormation_init();
-  ParticleFormation_cloudFormation(pf, 10, 0, 0, 0, 1000, 500, 25, 0, 0.3, 0.3);
-  //ParticleFormation_orbit(pf, 20, 0, 0, 0, 500, 500);
+
+  ParticleFormation_cloudFormation(pf, 10000, 0, 0, 0, 1000, 500, 100, 0.001, 0.3, 0.3);
   ParticleManager_addFormation(pm, pf);
+
+  ParticleFormation_singularity(pf, 0, 0, 0, 1000000000);
+  ParticleManager_addFormation(pm, pf);
+
   ParticleFormation_free(pf);
 
   //Vector_printVec3(&((Particle64 *)(pm->pf->particle64List->head->data))->particles[0].position);
   //Vector_printVec3(&((Particle64 *)(pm->pf->particle64List->head->data))->particles[1].position);
   unsigned long int i = 0;
-  unsigned int skip = 100;
+  unsigned int skip = 1;
 
   double theta = 0;
-  double dist = 70;
+  double dist = 300;
   double rotation = 0.000;
 
   while(true)//for (int i = 0; i < 10000000; i++)
@@ -50,7 +54,7 @@ int main()
     ParticleManager_updateParticles(pm);
     if (i % skip == 0)
     {
-      //printf("%li\n", i / skip);
+      /*
       double x = sin(theta);
       double z = cos(theta);
       double angle = RAD_TO_DED(theta);//(theta) * 180 / PI;//(PI * 3 / 2) +
@@ -62,6 +66,8 @@ int main()
 
       Camera_setPosition(cam, &deltaPos);
       Camera_setRotation(cam, &angles);
+      */
+
       TextDisplay_display(td, pm, cam);
     }
     i++;

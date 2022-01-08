@@ -17,13 +17,15 @@ typedef struct ParticleManager
   unsigned int length;
   unsigned int currIndex;
   Particle * currParticle;
+  double spaceCubeSideLength;
+  double thetaAccuracy;
 } ParticleManager;
 
 /////////////////////////////
 //  FUNCTION DECLERATIONS  //
 /////////////////////////////
 
-ParticleManager * ParticleManager_init(void);
+ParticleManager * ParticleManager_init(double spaceSize, double thetaAccuracy);
 void ParticleManager_free(ParticleManager * pm);
 
 void ParticleManager_loopInit(ParticleManager * pm);
