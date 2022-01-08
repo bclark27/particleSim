@@ -23,9 +23,8 @@ Vec3 unitVec2;
 //  PUBLIC FUNCTIONS  //
 ////////////////////////
 
-void PhysicsUtils_updateParticalPairVelocities(Particle * p1, Particle * p2, double timeStep)
+void PhysicsUtils_updateParticalPairVelocities(Particle * p1, Particle * p2)
 {
-  timeStep = 1;
   double r = Vector_distance(&p1->position, &p2->position);
   double r2 = r * r;
 
@@ -43,17 +42,16 @@ void PhysicsUtils_updateParticalPairVelocities(Particle * p1, Particle * p2, dou
   unitVec2.y = -unitVec1.y;
   unitVec2.z = -unitVec1.z;
 
-  Vector_scale(&unitVec1, a1 * timeStep);
-  Vector_scale(&unitVec2, a2 * timeStep);
+  Vector_scale(&unitVec1, a1);
+  Vector_scale(&unitVec2, a2);
 
   Vector_add(&p1->velocity, &unitVec1);
   Vector_add(&p2->velocity, &unitVec2);
 
 }
 
-void PhysicsUtils_updateSingleParticalVelocity(Particle * p1, Particle * p2, double timeStep)
+void PhysicsUtils_updateSingleParticalVelocity(Particle * p1, Particle * p2)
 {
-  timeStep = 1;
   double r = Vector_distance(&p1->position, &p2->position);
   double r2 = r * r;
 
@@ -64,13 +62,12 @@ void PhysicsUtils_updateSingleParticalVelocity(Particle * p1, Particle * p2, dou
 
   Vector_difference(&unitVec1, &p2->position, &p1->position);
   Vector_normalize(&unitVec1);
-  Vector_scale(&unitVec1, a1 * timeStep);
+  Vector_scale(&unitVec1, a1);
   Vector_add(&p1->velocity, &unitVec1);
 }
 
-void PhysicsUtils_updateSingleParticalVelocityFast(Particle * p1, Vec3 * vec, double mass, double timeStep)
+void PhysicsUtils_updateSingleParticalVelocityFast(Particle * p1, Vec3 * vec, double mass)
 {
-  timeStep = 1;
   double r = Vector_distance(&p1->position, vec);
   double r2 = r * r;
 
@@ -81,7 +78,7 @@ void PhysicsUtils_updateSingleParticalVelocityFast(Particle * p1, Vec3 * vec, do
 
   Vector_difference(&unitVec1, vec, &p1->position);
   Vector_normalize(&unitVec1);
-  Vector_scale(&unitVec1, a1 * timeStep);
+  Vector_scale(&unitVec1, a1);
   Vector_add(&p1->velocity, &unitVec1);
 }
 
@@ -106,4 +103,9 @@ void PhysicsUtils_relitiveVelocities(Vec3 * aTob, Vec3 * bToa, Particle * a, Par
 
   Vector_difference(aTob, &projBOntoDirection, &projAOntoDirection);
   Vector_difference(bToa, &projAOntoDirection, &projBOntoDirection);
+}
+
+double PhysicsUtils_dragForce(double otherBodyDensity, double areaOfSelfContact, double selfRelVelocity)
+{
+  
 }

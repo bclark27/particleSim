@@ -82,13 +82,13 @@ void ParticleManager_updateParticles(ParticleManager * pm)
   for (unsigned int i = 0; i < pm->length; i++)
   {
     if (!pm->particles[i].inUse) continue;
-    
+
     if (!OctTree_insertParticle(ot, &pm->particles[i]))
     {
       pm->particles[i].inUse = false;
     }
   }
-  /*
+
 
   ParticleList * pl = ParticleList_init();
   Particle * this = pm->particles;
@@ -100,6 +100,8 @@ void ParticleManager_updateParticles(ParticleManager * pm)
   double searchRadius = 1;
   Vec3 thisToOther;
   Vec3 otherToThis;
+  double dragForceThis;
+  double dragForceOther;
 
   for (unsigned int i = 0; i < pm->length; i++)
   {
@@ -124,6 +126,8 @@ void ParticleManager_updateParticles(ParticleManager * pm)
 
       PhysicsUtils_relitiveVelocities(&thisToOther, &otherToThis, this, other);
 
+
+
       if (p2Radius * 2 <= dist)
       {
         //if here that p1 can find p2 and p2 can find p1. so
@@ -142,7 +146,8 @@ void ParticleManager_updateParticles(ParticleManager * pm)
     this++;
   }
   ParticleList_freeList(pl);
-*/
+
+
   /*
   double mass = 0;
   double heat = 0;

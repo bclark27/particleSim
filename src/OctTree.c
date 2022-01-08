@@ -145,7 +145,7 @@ void OctTree_updateVelocitySingle(OctTree * ot, double theta, double timeStep, P
 
   if (ot->p != NULL && ot->p != p)
   {
-    PhysicsUtils_updateSingleParticalVelocity(p, ot->p, timeStep);
+    PhysicsUtils_updateSingleParticalVelocity(p, ot->p);
   }
 }
 
@@ -290,7 +290,7 @@ void updateWalkHelper(OctTree * ot, double theta, double timeStep, Particle * p)
   double dist = Vector_distance(&p->position, &ot->COM);
   if (theta > ot->sideLength / dist)
   {
-    PhysicsUtils_updateSingleParticalVelocityFast(p, &ot->COM, ot->totalMass, timeStep);
+    PhysicsUtils_updateSingleParticalVelocityFast(p, &ot->COM, ot->totalMass);
   }
   else
   {

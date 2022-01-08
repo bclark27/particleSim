@@ -32,7 +32,7 @@ int main()
 
   ParticleFormation * pf = ParticleFormation_init();
 
-  ParticleFormation_cloudFormation(pf, 1000, 0, 0, 0, 1000, 500, 100, 0.001, 0.3, 0.3);
+  ParticleFormation_cloudFormation(pf, 10000, 0, 0, 0, 1000, 500, 100, 0.001, 0.3, 0.3);
   ParticleManager_addFormation(pm, pf);
 
   //ParticleFormation_singularity(pf, 0, 0, 0, 1000000000);
