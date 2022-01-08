@@ -94,3 +94,16 @@ void PhysicsUtils_updateParticalPosition(Particle * p, double timeStep)
   p->position.z += p->velocity.z * timeStep;
   //printf("%lf\n", p->velocity.x);
 }
+
+Vec3 scratch;
+Vec3 projAOntoDirection;
+Vec3 projBOntoDirection;
+void PhysicsUtils_relitiveVelocities(Vec3 * aTob, Vec3 * bToa, Particle * a, Particle * b)
+{
+  Vector_difference(&scratch, &a->position, &b->position);
+  Vector_projectOntoR1(&projAOntoDirection, &scratch, &a->velocity);
+  Vector_projectOntoR1(&projBOntoDirection, &scratch, &b->velocity);
+
+  Vector_difference(aTob, &projBOntoDirection, &projAOntoDirection);
+  Vector_difference(bToa, &projAOntoDirection, &projBOntoDirection);
+}

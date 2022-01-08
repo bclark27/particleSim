@@ -4,6 +4,7 @@
 #include "Common.h"
 #include "Vector.h"
 #include "Particle.h"
+#include "ParticleList.h"
 
 /////////////
 //  TYPES  //
@@ -43,5 +44,7 @@ bool OctTree_insertParticle(OctTree * ot, Particle * p);
 void OctTree_updateVelocitySingle(OctTree * ot, double theta, double timeStep, Particle * p);
 void OctTree_updatePositions(OctTree * ot, double timeStep);
 
+void OctTree_particleAreaStatsQueery(OctTree * ot, Vec3 * queeryOrigin, double queerySideLength, unsigned int * particleCount, double * totalMass, double * totalHeatJoules);
+void OctTree_queeryParticlesInArea(OctTree * ot, ParticleList * pl,  Vec3 * queeryOrigin, double queerySideLength);
 
 #endif

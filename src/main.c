@@ -18,7 +18,7 @@
 int main()
 {
   ParticleManager * pm = ParticleManager_init(1000, 0.9);
-  ParticleManager_setTimeStep(pm, 10);
+  ParticleManager_setTimeStep(pm, 1);
 
   Camera * cam = Camera_init();
   Vec3 deltaPos = {0, 0, 300};
@@ -32,11 +32,11 @@ int main()
 
   ParticleFormation * pf = ParticleFormation_init();
 
-  ParticleFormation_cloudFormation(pf, 10000, 0, 0, 0, 1000, 500, 100, 0.001, 0.3, 0.3);
+  ParticleFormation_cloudFormation(pf, 1000, 0, 0, 0, 1000, 500, 100, 0.001, 0.3, 0.3);
   ParticleManager_addFormation(pm, pf);
 
-  ParticleFormation_singularity(pf, 0, 0, 0, 1000000000);
-  ParticleManager_addFormation(pm, pf);
+  //ParticleFormation_singularity(pf, 0, 0, 0, 1000000000);
+  //ParticleManager_addFormation(pm, pf);
 
   ParticleFormation_free(pf);
 

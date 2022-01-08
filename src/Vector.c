@@ -116,6 +116,12 @@ void Vector_projectOntoR2(Vec3 * ans, Vec3 * v1, Vec3 * v2, Vec3 * input)
   memcpy(ans, &u1, sizeof(Vec3));
 }
 
+void Vector_projectOntoR1(Vec3 * ans, Vec3 * onto, Vec3 * input)
+{
+  memcpy(ans, onto, sizeof(Vec3));
+  Vector_scale(ans, Vector_projectionScaler(onto, input));
+}
+
 void Vector_r3PerpendicularSpace(Vec3 * ans1, Vec3 * ans2, Vec3 * r1Space)
 {
   ans1->x = -r1Space->y / r1Space->x;

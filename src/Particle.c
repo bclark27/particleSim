@@ -18,8 +18,15 @@ void Particle_init(Particle * p)
 
   p->mass = 1;
   p->density = 500;
-  p->temp = 0;
+  p->heatJoules = 1;
+
+  //Particle_updateRadius(p);
 
   p->fixed = false;
   p->inUse = true;
+}
+
+double Particle_getRadius(Particle * p)
+{
+  return cbrt((3 * p->mass) / (4 * PI * p->density));
 }

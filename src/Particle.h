@@ -18,7 +18,7 @@ typedef struct Particle
   //4 byte
   float mass;
   float density;
-  float temp;
+  float heatJoules;
 
   //2 byte
 
@@ -33,5 +33,6 @@ typedef struct Particle
 /////////////////////////////
 
 void Particle_init(Particle * p);
+double Particle_getRadius(Particle * p);
 
 #endif

@@ -4,6 +4,7 @@
 #include "OctTree.h"
 #include "ParticleFormation.h"
 #include "PhysicsUtils.h"
+#include "ParticleList.h"
 
 /////////////
 //  TYPES  //
@@ -81,12 +82,78 @@ void ParticleManager_updateParticles(ParticleManager * pm)
   for (unsigned int i = 0; i < pm->length; i++)
   {
     if (!pm->particles[i].inUse) continue;
-
+    
     if (!OctTree_insertParticle(ot, &pm->particles[i]))
     {
       pm->particles[i].inUse = false;
     }
   }
+  /*
+
+  ParticleList * pl = ParticleList_init();
+  Particle * this = pm->particles;
+  Particle * other;
+  Vec3 searchOrigin = {0, 0, 0};
+  double p1Radius;
+  double p2Radius;
+  double dist;
+  double searchRadius = 1;
+  Vec3 thisToOther;
+  Vec3 otherToThis;
+
+  for (unsigned int i = 0; i < pm->length; i++)
+  {
+    if (!this->inUse) continue;
+    ParticleList_eraseList(pl);
+
+    p1Radius = Particle_getRadius(this);
+    searchRadius = p1Radius * 2;
+    searchOrigin.x = this->position.x - (searchRadius / 2);
+    searchOrigin.x = this->position.x - (searchRadius / 2);
+    searchOrigin.x = this->position.x - (searchRadius / 2);
+
+    OctTree_queeryParticlesInArea(ot, pl, &searchOrigin, searchRadius);
+
+    other = pl->particles;
+    for (int k = 0; k < pl->elementCount; k++)
+    {
+      p2Radius = Particle_getRadius(other);
+      dist = Vector_distance(&this->position, &other->position);
+
+      if (dist > p1Radius + p2Radius) continue;
+
+      PhysicsUtils_relitiveVelocities(&thisToOther, &otherToThis, this, other);
+
+      if (p2Radius * 2 <= dist)
+      {
+        //if here that p1 can find p2 and p2 can find p1. so
+        //the drag calculations will occure twice on these particles
+        //since the calculation will be the same both times, the fricion force
+        //can be halfed each time so that after each particle finds each other
+        //they add up to the full friction force
+      }
+      else
+      {
+
+      }
+
+      other++;
+    }
+    this++;
+  }
+  ParticleList_freeList(pl);
+*/
+  /*
+  double mass = 0;
+  double heat = 0;
+  unsigned int count = 0;
+
+  OctTree_particleAreaStatsQueery(ot, &zero, ot->sideLength, &count, &mass, &heat);
+
+  printf("%i\n", count);
+
+  */
+
 
   for (unsigned int i = 0; i < pm->length; i++)
   {
@@ -99,9 +166,6 @@ void ParticleManager_updateParticles(ParticleManager * pm)
     if (!pm->particles[i].inUse) continue;
     PhysicsUtils_updateParticalPosition(&pm->particles[i], pm->timeStep);
   }
-
-  //OctTree_updateVelocities(ot, pm->thetaAccuracy, pm->timeStep);
-  //OctTree_updatePositions(ot, pm->timeStep);
 
   OctTree_free(ot, false);
 }

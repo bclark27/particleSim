@@ -38,7 +38,6 @@ void ParticleFormation_cloudFormation(ParticleFormation * pf, unsigned int parti
   if (particleCount == 0) return;
 
   setParticleArraySize(pf, particleCount);
-
   for (unsigned int i = 0; i < particleCount; i++)
   {
     Particle_init(&(pf->particles[i]));
@@ -54,6 +53,7 @@ void ParticleFormation_cloudFormation(ParticleFormation * pf, unsigned int parti
     pf->particles[i].mass = avgParticleMass + (RAND_DOUBLE * avgParticleMass * massRand);
 
     pf->particles[i].density = avgDensity + (RAND_DOUBLE * avgDensity * densityRand);
+
   }
 }
 

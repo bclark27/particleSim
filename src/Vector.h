@@ -40,9 +40,11 @@ void Vector_scaleCpy(Vec3 * dest, Vec3 * src, double scale);
 double Vector_length(Vec3 * v);
 void Vector_normalize(Vec3 * v);
 double Vector_distance(Vec3 * v1, Vec3 * v2);
+//v1 - v2
 void Vector_difference(Vec3 * ans, Vec3 * v1, Vec3 * v2);
 double Vector_innerProduct(Vec3 * v1, Vec3 * v2);
 void Vector_projectOntoR2(Vec3 * ans, Vec3 * v1, Vec3 * v2, Vec3 * input);
+void Vector_projectOntoR1(Vec3 * ans, Vec3 * onto, Vec3 * input);
 void Vector_r3PerpendicularSpace(Vec3 * ans1, Vec3 * ans2, Vec3 * r1Space);
 void Vector_r2OrthogonalSpace(Vec3 * v1, Vec3 * v2);
 void Vector_multiplyVec44(Vec44 * ans, Vec44 * v1, Vec44 * v2);

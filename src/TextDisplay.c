@@ -70,20 +70,17 @@ void TextDisplay_display(TextDisplay * td, ParticleManager * pm, Camera * cam)
   {
     if (Camera_projectVec3Point(cam, &p->position, &ans))
     {
-      //Vector_printVec3(&ans);
+
       pixX = (0.5 * (ans.x + 1)) * PIXEL_DIM;
       pixY = (1 - (ans.y + 1) * 0.5) * PIXEL_DIM;
-      //printf("%i, %i\n", pixX, pixY);
-      double objRadius = cbrt((3 * p->mass) / (4 * PI * p->density));
+
+      double objRadius = Particle_getRadius(p);//cbrt((3 * p->mass) / (4 * PI * p->density));//
       double dist = Vector_distance(&cam->cameraPosition, &p->position);
       if (dist == 0) continue;
 
       double fovRadius = dist * atan(DEG_TO_RAD(cam->fov) / 2);
       double screenRadius = (objRadius / fovRadius) * PIXEL_DIM;
 
-      //printf("%lf\n", screenRadius);
-
-      //td->pixels[pixY][pixX] = 255 * dist;
       double brightness = MAX(MIN(1000, p->density), 0) / 1000.0;//1 - (dist / cam->farPlane);
       for (int dy = -screenRadius; dy < screenRadius; dy++)
       {

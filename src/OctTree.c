@@ -16,8 +16,8 @@ bool contains(OctTree * ot, Vec3 pos);
 void splitNode(OctTree * ot);
 void updateCOMWithChildren(OctTree * ot);
 void updateHelperMaster(OctTree * otHead, OctTree * otThis, double theta, double timeStep);
-//void updateHelperSlave(OctTree * ot, double theta, double timeStep, Particle * p);
 void updateWalkHelper(OctTree * ot, double theta, double timeStep, Particle * p);
+bool boxesIntersect(Vec3 * v1, double len1, Vec3 * v2, double len2);
 
 ////////////////////////
 //  PUBLIC FUNCTIONS  //
@@ -149,6 +149,54 @@ void OctTree_updateVelocitySingle(OctTree * ot, double theta, double timeStep, P
   }
 }
 
+void OctTree_particleAreaStatsQueery(OctTree * ot, Vec3 * queeryOrigin, double queerySideLength, unsigned int * particleCount, double * totalMass, double * totalHeatJoules)
+{
+  if (!boxesIntersect(queeryOrigin, queerySideLength, &ot->position, ot->sideLength)) return;
+
+  if (ot->split)
+  {
+    OctTree_particleAreaStatsQueery(ot->childA, queeryOrigin, queerySideLength, particleCount, totalMass, totalHeatJoules);
+    OctTree_particleAreaStatsQueery(ot->childB, queeryOrigin, queerySideLength, particleCount, totalMass, totalHeatJoules);
+    OctTree_particleAreaStatsQueery(ot->childC, queeryOrigin, queerySideLength, particleCount, totalMass, totalHeatJoules);
+    OctTree_particleAreaStatsQueery(ot->childD, queeryOrigin, queerySideLength, particleCount, totalMass, totalHeatJoules);
+    OctTree_particleAreaStatsQueery(ot->childE, queeryOrigin, queerySideLength, particleCount, totalMass, totalHeatJoules);
+    OctTree_particleAreaStatsQueery(ot->childF, queeryOrigin, queerySideLength, particleCount, totalMass, totalHeatJoules);
+    OctTree_particleAreaStatsQueery(ot->childG, queeryOrigin, queerySideLength, particleCount, totalMass, totalHeatJoules);
+    OctTree_particleAreaStatsQueery(ot->childH, queeryOrigin, queerySideLength, particleCount, totalMass, totalHeatJoules);
+    return;
+  }
+
+  if (ot->p != NULL && contains(ot, ot->p->position))
+  {
+    *particleCount += 1;
+    *totalMass += ot->p->mass;
+    *totalHeatJoules += ot->p->heatJoules;
+  }
+}
+
+void OctTree_queeryParticlesInArea(OctTree * ot, ParticleList * pl,  Vec3 * queeryOrigin, double queerySideLength)
+{
+  if (!boxesIntersect(queeryOrigin, queerySideLength, &ot->position, ot->sideLength)) return;
+
+  if (ot->split)
+  {
+    OctTree_queeryParticlesInArea(ot->childA, pl, queeryOrigin, queerySideLength);
+    OctTree_queeryParticlesInArea(ot->childB, pl, queeryOrigin, queerySideLength);
+    OctTree_queeryParticlesInArea(ot->childC, pl, queeryOrigin, queerySideLength);
+    OctTree_queeryParticlesInArea(ot->childD, pl, queeryOrigin, queerySideLength);
+    OctTree_queeryParticlesInArea(ot->childE, pl, queeryOrigin, queerySideLength);
+    OctTree_queeryParticlesInArea(ot->childF, pl, queeryOrigin, queerySideLength);
+    OctTree_queeryParticlesInArea(ot->childG, pl, queeryOrigin, queerySideLength);
+    OctTree_queeryParticlesInArea(ot->childH, pl, queeryOrigin, queerySideLength);
+    return;
+  }
+
+  if (ot->p != NULL && contains(ot, ot->p->position))
+  {
+    ParticleList_append(pl, ot->p);
+  }
+}
+
 ////////////////////////
 //  PRIVATE FUNCTIONS //
 ////////////////////////
@@ -239,15 +287,6 @@ void updateWalkHelper(OctTree * ot, double theta, double timeStep, Particle * p)
   //if it is an empty cell just return
   if (!ot->split && ot->p == NULL) return;
 
-  //if this is a leaf node with just one particle then do a direct calculation
-  /*
-  if (ot->p != NULL)
-  {
-    PhysicsUtils_updateSingleParticalVelocityFast(p, &ot->COM, ot->totalMass, timeStep);
-    return;
-  }
-  */
-
   double dist = Vector_distance(&p->position, &ot->COM);
   if (theta > ot->sideLength / dist)
   {
@@ -257,4 +296,16 @@ void updateWalkHelper(OctTree * ot, double theta, double timeStep, Particle * p)
   {
     OctTree_updateVelocitySingle(ot, theta, timeStep, p);
   }
+}
+
+bool boxesIntersect(Vec3 * v1, double len1, Vec3 * v2, double len2)
+{
+   return !(v1->x        > v2->x + len2 ||
+            v1->x + len1 < v2->x        ||
+
+            v1->y        > v2->y + len2 ||
+            v1->y + len1 < v2->y        ||
+
+            v1->z        > v2->z + len2 ||
+            v1->z + len1 < v2->z        );
 }
