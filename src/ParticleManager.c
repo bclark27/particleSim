@@ -76,9 +76,12 @@ void ParticleManager_addFormation(ParticleManager * pm, ParticleFormation * pf)
 
 void ParticleManager_updateParticles(ParticleManager * pm)
 {
+  /////////////////////////////////////
+  //  insert particles into the tree //
+  /////////////////////////////////////
+
   Vec3 zero = {0, 0, 0};
   OctTree * ot = OctTree_init(&zero, pm->spaceCubeSideLength);
-
   for (unsigned int i = 0; i < pm->length; i++)
   {
     if (!pm->particles[i].inUse) continue;
@@ -89,27 +92,26 @@ void ParticleManager_updateParticles(ParticleManager * pm)
     }
   }
 
+  /////////////////////////////////////////////////////////////////////////
+  //  apply friction from drag force  (before gravity changes veloctiy)  //
+  /////////////////////////////////////////////////////////////////////////
 
   ParticleList * pl = ParticleList_init();
   Particle * this = pm->particles;
   Particle * other;
   Vec3 searchOrigin = {0, 0, 0};
-  double p1Radius;
-  double p2Radius;
-  double dist;
-  double searchRadius = 1;
   Vec3 thisToOther;
   Vec3 otherToThis;
-  double dragForceThis;
-  double dragForceOther;
+  Vec3 currentThisVelocity;
+  Vec3 currentOtherVelocity;
 
   for (unsigned int i = 0; i < pm->length; i++)
   {
     if (!this->inUse) continue;
     ParticleList_eraseList(pl);
 
-    p1Radius = Particle_getRadius(this);
-    searchRadius = p1Radius * 2;
+    double p1Radius = Particle_getRadius(this);
+    double searchRadius = p1Radius * 2;
     searchOrigin.x = this->position.x - (searchRadius / 2);
     searchOrigin.x = this->position.x - (searchRadius / 2);
     searchOrigin.x = this->position.x - (searchRadius / 2);
@@ -119,27 +121,35 @@ void ParticleManager_updateParticles(ParticleManager * pm)
     other = pl->particles;
     for (int k = 0; k < pl->elementCount; k++)
     {
-      p2Radius = Particle_getRadius(other);
-      dist = Vector_distance(&this->position, &other->position);
+      double p2Radius = Particle_getRadius(other);
+      double dist = Vector_distance(&this->position, &other->position);
 
       if (dist > p1Radius + p2Radius) continue;
 
       PhysicsUtils_relitiveVelocities(&thisToOther, &otherToThis, this, other);
 
+      //magnitude of velocity is the same for both by definition
+      double relitiveVelocity = Vector_length(&thisToOther);
 
+      double minRadius = MIN(p1Radius, p2Radius);
+      double areaOfContact = PI * minRadius * minRadius;
+
+      double dragForceThis = PhysicsUtils_dragForce(other->density, areaOfContact, relitiveVelocity);
+      double dragForceOther = PhysicsUtils_dragForce(this->density, areaOfContact, relitiveVelocity);
 
       if (p2Radius * 2 <= dist)
       {
-        //if here that p1 can find p2 and p2 can find p1. so
+        //if here then p1 can find p2 and p2 can find p1. so
         //the drag calculations will occure twice on these particles
         //since the calculation will be the same both times, the fricion force
         //can be halfed each time so that after each particle finds each other
         //they add up to the full friction force
-      }
-      else
-      {
 
+        dragForceThis /= 2;
+        dragForceOther /= 2;
       }
+
+
 
       other++;
     }
@@ -147,24 +157,18 @@ void ParticleManager_updateParticles(ParticleManager * pm)
   }
   ParticleList_freeList(pl);
 
-
-  /*
-  double mass = 0;
-  double heat = 0;
-  unsigned int count = 0;
-
-  OctTree_particleAreaStatsQueery(ot, &zero, ot->sideLength, &count, &mass, &heat);
-
-  printf("%i\n", count);
-
-  */
-
+  ///////////////////////////////////
+  //  add velocity due to gravity  //
+  ///////////////////////////////////
 
   for (unsigned int i = 0; i < pm->length; i++)
   {
     if (!pm->particles[i].inUse) continue;
     OctTree_updateVelocitySingle(ot, pm->thetaAccuracy, pm->timeStep, &pm->particles[i]);
   }
+
+
+
 
   for (unsigned int i = 0; i < pm->length; i++)
   {
