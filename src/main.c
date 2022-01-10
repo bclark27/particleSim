@@ -17,12 +17,12 @@
 
 int main()
 {
-  ParticleManager * pm = ParticleManager_init(1000, 0.9);
+  ParticleManager * pm = ParticleManager_init(10000, 0.9);
   ParticleManager_setTimeStep(pm, 1);
 
   Camera * cam = Camera_init();
-  Vec3 deltaPos = {0, 0, 300};
-  Camera_moveCameraPosition(cam, &deltaPos);
+  Vec3 camPos = {0, 0, 200};
+  Camera_moveCameraPosition(cam, &camPos);
   Vec3 angles = {0, 0, 0};
   //Camera_setRotation(cam, &angles);
   Camera_setNearFarPlane(cam, 0.01, 1000);
@@ -32,11 +32,11 @@ int main()
 
   ParticleFormation * pf = ParticleFormation_init();
 
-  ParticleFormation_cloudFormation(pf, 10000, 0, 0, 0, 1000, 500, 100, 0.001, 0.3, 0.3);
+  ParticleFormation_cloudFormation(pf, 1000, 0, 0, 0, 100, 500, 100, 0.0, 0, 0);
   ParticleManager_addFormation(pm, pf);
 
-  //ParticleFormation_singularity(pf, 0, 0, 0, 1000000000);
-  //ParticleManager_addFormation(pm, pf);
+  // ParticleFormation_singularity(pf, 0, 0, 0, 100000);
+  // ParticleManager_addFormation(pm, pf);
 
   ParticleFormation_free(pf);
 
@@ -46,7 +46,7 @@ int main()
   unsigned int skip = 1;
 
   double theta = 0;
-  double dist = 300;
+  double dist = 20;
   double rotation = 0.000;
 
   while(true)//for (int i = 0; i < 10000000; i++)
@@ -63,10 +63,12 @@ int main()
       deltaPos.z = z * dist;
       deltaPos.x = x * dist;
       theta += rotation;
-
-      Camera_setPosition(cam, &deltaPos);
       Camera_setRotation(cam, &angles);
       */
+      // camPos = pm->COM;
+      // camPos.z += dist;
+      // Camera_setPosition(cam, &camPos);
+      //Vector_printVec3(&camPos);
 
       TextDisplay_display(td, pm, cam);
     }

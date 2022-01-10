@@ -68,13 +68,12 @@ void TextDisplay_display(TextDisplay * td, ParticleManager * pm, Camera * cam)
 
   while (p)
   {
-    if (Camera_projectVec3Point(cam, &p->position, &ans))
+    if (p->inUse && Camera_projectVec3Point(cam, &p->position, &ans))
     {
-
       pixX = (0.5 * (ans.x + 1)) * PIXEL_DIM;
       pixY = (1 - (ans.y + 1) * 0.5) * PIXEL_DIM;
 
-      double objRadius = Particle_getRadius(p);//cbrt((3 * p->mass) / (4 * PI * p->density));//
+      double objRadius = p->radius;//Particle_getRadius(p);//cbrt((3 * p->mass) / (4 * PI * p->density));//
       double dist = Vector_distance(&cam->cameraPosition, &p->position);
       if (dist == 0) continue;
 

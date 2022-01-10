@@ -35,6 +35,7 @@ void Vector_zeroizeVec44(Vec44 * v);
 void Vector_identityVec44(Vec44 * v);
 //add v2 to v1
 void Vector_add(Vec3 * v1, Vec3 * v2);
+void Vector_addCpy(Vec3 * dest, Vec3 * v1, Vec3 * v2);
 void Vector_scale(Vec3 * v, double scale);
 void Vector_scaleCpy(Vec3 * dest, Vec3 * src, double scale);
 double Vector_length(Vec3 * v);

@@ -12,13 +12,16 @@
 //  FUNCTION DECLERATIONS  //
 /////////////////////////////
 
-void PhysicsUtils_updateParticalPairVelocities(Particle * p1, Particle * p2);
-void PhysicsUtils_updateSingleParticalVelocity(Particle * p1, Particle * p2);
-void PhysicsUtils_updateSingleParticalVelocityFast(Particle * p1, Vec3 * vec, double mass);
+void PhysicsUtils_applyGravitationalForcePair(Particle * p1, Particle * p2);
+void PhysicsUtils_applyGravitationalForceSingle(Particle * p1, Particle * p2);
+void PhysicsUtils_applyGravitationalForceSingleFast(Particle * p1, Vec3 * vec, double mass);
 void PhysicsUtils_updateParticalPosition(Particle * p, double timeStep);
 void PhysicsUtils_relitiveVelocities(Vec3 * aTob, Vec3 * bToa, Particle * a, Particle * b);
 double PhysicsUtils_dragForce(double otherBodyDensity, double areaOfSelfContact, double selfRelVelocity);
-
-void PhysicsUtils_applyAccelerationToVelocityVector(Vec3 * velocity, Vec3 forceDirection, double newtons);
-
+void PhysicsUtils_applyForceToParticle(Particle * p, Vec3 * forceDirection, double newtons);
+double PhysicsUtils_calculateEnergyLoss(Vec3 * velocityInitial, Vec3 * velocityFinal, double mass);
+void PhysicsUtils_updateHeatEnergy(Particle * p, double timeStep);
+double PhysicsUtils_calculateRadiationGiveOff(Particle * p, double timeStep);
+double PhysicsUtils_joulesToKelvin(double joules);
+double PhysicsUtils_KelvinToJoules(double kelvin);
 #endif

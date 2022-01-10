@@ -10,6 +10,7 @@
 #include <unistd.h>
 
 #define PI 3.14159265
+#define E 2.718281828
 
 #define RAND_DOUBLE (((rand() / (double)RAND_MAX) * 2) - 1)
 #define DEG_TO_RAD(x) ((x) * (PI / 180.0))

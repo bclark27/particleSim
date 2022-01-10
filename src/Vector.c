@@ -57,6 +57,13 @@ void Vector_add(Vec3 * v1, Vec3 * v2)
   v1->z += v2->z;
 }
 
+void Vector_addCpy(Vec3 * dest, Vec3 * v1, Vec3 * v2)
+{
+  dest->x = v1->x + v2->x;
+  dest->y = v1->y + v2->y;
+  dest->z = v1->z + v2->z;
+}
+
 void Vector_scale(Vec3 * v, double scale)
 {
   v->x *= scale;

@@ -14,11 +14,18 @@ typedef struct Particle
   //8 byte
   Vec3 position;
   Vec3 velocity;
+  Vec3 netAddedVelocity;
+  double heatJoules;
+  double lostHeatJoules;
 
   //4 byte
   float mass;
   float density;
-  float heatJoules;
+  float surfaceArea;
+  float crossSectionalArea;
+  float radius;
+  float volume;
+  float coolingConstant;
 
   //2 byte
 
@@ -34,5 +41,9 @@ typedef struct Particle
 
 void Particle_init(Particle * p);
 double Particle_getRadius(Particle * p);
+void Particle_addNetVelocity(Particle * p);
+
+void Particle_setMass(Particle * p, double mass);
+void Particle_setDensity(Particle * p, double density);
 
 #endif

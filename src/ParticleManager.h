@@ -19,6 +19,7 @@ typedef struct ParticleManager
   Particle * currParticle;
   double spaceCubeSideLength;
   double thetaAccuracy;
+  Vec3 COM;
 } ParticleManager;
 
 /////////////////////////////

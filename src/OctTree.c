@@ -145,7 +145,7 @@ void OctTree_updateVelocitySingle(OctTree * ot, double theta, double timeStep, P
 
   if (ot->p != NULL && ot->p != p)
   {
-    PhysicsUtils_updateSingleParticalVelocity(p, ot->p);
+    PhysicsUtils_applyGravitationalForceSingle(p, ot->p);
   }
 }
 
@@ -193,6 +193,7 @@ void OctTree_queeryParticlesInArea(OctTree * ot, ParticleList * pl,  Vec3 * quee
 
   if (ot->p != NULL && contains(ot, ot->p->position))
   {
+    //if (ot->p->mass < -0.1) printf("HELLO\n%lf\n", ot->p->mass);
     ParticleList_append(pl, ot->p);
   }
 }
@@ -290,7 +291,7 @@ void updateWalkHelper(OctTree * ot, double theta, double timeStep, Particle * p)
   double dist = Vector_distance(&p->position, &ot->COM);
   if (theta > ot->sideLength / dist)
   {
-    PhysicsUtils_updateSingleParticalVelocityFast(p, &ot->COM, ot->totalMass);
+    PhysicsUtils_applyGravitationalForceSingleFast(p, &ot->COM, ot->totalMass);
   }
   else
   {
