@@ -3,6 +3,13 @@
 #include <string.h>
 
 #include "TextDisplay.h"
+#include "Render.h"
+
+///////////////
+//  DEFINES  //
+///////////////
+
+#define MAX_MASS 1000
 
 /////////////
 //  TYPES  //
@@ -16,7 +23,8 @@ void updateTextWindowSize(TextDisplay * td);
 void freeText(TextDisplay * td);
 void clearPixels(TextDisplay * td);
 void clearText(TextDisplay * td);
-void pixelsToText(TextDisplay * td);
+void rendererToText(TextDisplay * td, Render * render);
+void printStats(TextDisplay * td, ParticleManager * pm);
 void printText(TextDisplay * td);
 
 /////////////////////////
@@ -26,7 +34,7 @@ void printText(TextDisplay * td);
 //int textLevelsLen = 67;
 //const char textLevels[] = "$@B%8&WM#*oahkbdpqwmZO0QLCJUYXzcvunxrjft/|()1{}[]?-_+~i!lI;:,\"^`\". ";
 int textLevelsLen = 11;
-const char textLevels[] = " .:/*^%&$#@";
+const char textLevels[] = " .:^/*%&$#@";
 ////////////////////////
 //  PUBLIC FUNCTIONS  //
 ////////////////////////
@@ -53,55 +61,11 @@ void TextDisplay_free(TextDisplay * td)
   free(td);
 }
 
-void TextDisplay_display(TextDisplay * td, ParticleManager * pm, Camera * cam)
+void TextDisplay_display(TextDisplay * td, Render * render)
 {
   updateTextWindowSize(td);
-
-
-  ParticleManager_loopInit(pm);
-  Particle * p = ParticleManager_loopNext(pm);
-  Vec3 ans;
-  int pixX;
-  int pixY;
-
-  clearPixels(td);
-
-  while (p)
-  {
-    if (p->inUse && Camera_projectVec3Point(cam, &p->position, &ans))
-    {
-      pixX = (0.5 * (ans.x + 1)) * PIXEL_DIM;
-      pixY = (1 - (ans.y + 1) * 0.5) * PIXEL_DIM;
-
-      double objRadius = p->radius;//Particle_getRadius(p);//cbrt((3 * p->mass) / (4 * PI * p->density));//
-      double dist = Vector_distance(&cam->cameraPosition, &p->position);
-      if (dist == 0) continue;
-
-      double fovRadius = dist * atan(DEG_TO_RAD(cam->fov) / 2);
-      double screenRadius = (objRadius / fovRadius) * PIXEL_DIM;
-
-      double brightness = MAX(MIN(1000, p->density), 0) / 1000.0;//1 - (dist / cam->farPlane);
-      for (int dy = -screenRadius; dy < screenRadius; dy++)
-      {
-        for (int dx = -screenRadius; dx < screenRadius; dx++)
-        {
-          int x = pixX + dx;
-          int y = pixY + dy;
-          if (x < 0 || y < 0 || x >= PIXEL_DIM || y >= PIXEL_DIM ||
-            (dx * dx + dy * dy) > screenRadius * screenRadius
-            || ans.z >= td->zbuffer[y][x]) continue;
-          td->pixels[y][x] = 255 * brightness;
-          td->zbuffer[y][x] = ans.z;
-        }
-      }
-    }
-
-    p = ParticleManager_loopNext(pm);
-  }
-
   clearText(td);
-  pixelsToText(td);
-  //printf("FRAME\n");
+  rendererToText(td, render);
   printText(td);
 }
 
@@ -143,13 +107,6 @@ void freeText(TextDisplay * td)
   td->text = NULL;
 }
 
-void clearPixels(TextDisplay * td)
-{
-  memset(&td->pixels, 0, PIXEL_DIM * PIXEL_DIM);
-  for (int i = 0; i < PIXEL_DIM; i++) for (int k = 0; k < PIXEL_DIM; k++)
-    td->zbuffer[i][k] = 2;
-}
-
 void clearText(TextDisplay * td)
 {
   if (td->text == NULL) return;
@@ -157,11 +114,11 @@ void clearText(TextDisplay * td)
   for (int i = 0; i < td->textLen; i++)
   {
     if (td->text[i] == NULL) return;
-    memset(td->text[i], 0, td->width);
+    memset(td->text[i], ' ', td->width);
   }
 }
 
-void pixelsToText(TextDisplay * td)
+void rendererToText(TextDisplay * td, Render * render)
 {
   int realX = td->width;
   int realY = td->height * 2;
@@ -176,52 +133,56 @@ void pixelsToText(TextDisplay * td)
 
   //printf("%i, %i, %i\n", squareSize, xoffset, yoffset);
 
-  int value;
-  int xScale = PIXEL_DIM / squareSize;
+  int xScale = render->size / squareSize;
   int yScale = xScale * 2;
+
+  double ratio = (double)(textLevelsLen - 1) / 255;
 
   for (int y = 0; y < ySideLen; y++)//(int y = 0; y < (td->height - yoffset * 2); y++)
   {
     for (int x = 0; x < xSideLen; x++)//(int x = 0; x < (td->width - xoffset * 2); x++)
     {
-      value = 0;
+      double value = 0;
 
       for (int i = 0; i < xScale; i++)
       {
-        for (int k = 0 ; k < yScale; k++)
+        for (int k = 0; k < yScale; k++)
         {
-          int dx = i + x * xScale;
-          int dy = k + y * yScale;
+          // int dx = i + x * xScale;
+          // int dy = k + y * yScale;
+          // int index = dy * xSideLen + dx;
+          int pixY = y * yScale + k;
+          int pixX = x * xScale + i;
 
-          value += td->pixels[dy][dx];
-          //if (td->pixels[dy][dx] > 0) printf("%i\n", td->pixels[dy][dx]);
+          int index = pixX + render->size * pixY;
+
+          double mass = render->massBuffer[index];
+          value += mass;
         }
       }
 
-      value /= xScale * yScale;//MIN(255, value);
+      char charOut = ' ';
+      // value /= xScale * yScale;
+      value = MAX(0, MIN(MAX_MASS - 1, value));
+      value /= MAX_MASS;
+      value = pow(value, 0.5);
+      int level = value * textLevelsLen;// * ratio;
+      charOut = textLevels[level];
 
-
-
-      td->text[y + yAsciiOffset][x + xAsciiOffset] = value;
+      // if (y == 10 && x == 10) charOut = '&';
+      td->text[y + yAsciiOffset][x + xAsciiOffset] = charOut;
     }
   }
+}
+
+void printStats(TextDisplay * td, ParticleManager * pm)
+{
+
 }
 
 void printText(TextDisplay * td)
 {
   if (td->text == NULL) return;
-
-  double ratio = (double)(textLevelsLen - 1) / 255;
-  int realX = td->width;
-  int realY = td->height * 2;
-
-  int squareSize = MIN(realX, realY);
-
-  int xAsciiOffset = (realX - squareSize) / 2;
-  int yAsciiOffset = (realY - squareSize) / 4;
-
-  int xSideLen = squareSize;
-  int ySideLen = squareSize / 2;
 
   for (int y = 0; y < td->height; y++)
   {
@@ -233,17 +194,7 @@ void printText(TextDisplay * td)
 
     for (int x = 0; x < td->width; x++)
     {
-      if (x >= xAsciiOffset && x < xAsciiOffset + xSideLen &&
-          y >= yAsciiOffset && y < yAsciiOffset + ySideLen)
-      {
-        int level = td->text[y][x] * ratio;
-        char c = textLevels[level];
-        printf("%c", c);
-      }
-      else
-      {
-        printf(" ");
-      }
+      printf("%c", td->text[y][x]);
     }
     printf("\n");
   }

@@ -7,12 +7,11 @@
 #include "ParticleManager.h"
 #include "Vector.h"
 #include "Camera.h"
+#include "Render.h"
 
 ///////////////
 //  DEFINES  //
 ///////////////
-
-#define PIXEL_DIM 1000
 
 /////////////
 //  TYPES  //
@@ -26,9 +25,7 @@ typedef struct TextDisplay
 
   int width;
   int height;
-  unsigned char pixels[PIXEL_DIM][PIXEL_DIM];
-  double zbuffer[PIXEL_DIM][PIXEL_DIM];
-  unsigned char ** text;
+  char ** text;
   int textLen;
 
 } TextDisplay;
@@ -40,5 +37,5 @@ typedef struct TextDisplay
 TextDisplay * TextDisplay_init(void);
 void TextDisplay_free(TextDisplay * td);
 
-void TextDisplay_display(TextDisplay * td, ParticleManager * pm, Camera * cam);
+void TextDisplay_display(TextDisplay * td, Render * render);
 #endif

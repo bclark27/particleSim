@@ -171,6 +171,7 @@ void OctTree_particleAreaStatsQueery(OctTree * ot, Vec3 * queeryOrigin, double q
     *particleCount += 1;
     *totalMass += ot->p->mass;
     *totalHeatJoules += ot->p->heatJoules;
+
   }
 }
 
@@ -193,7 +194,6 @@ void OctTree_queeryParticlesInArea(OctTree * ot, ParticleList * pl,  Vec3 * quee
 
   if (ot->p != NULL && contains(ot, ot->p->position))
   {
-    //if (ot->p->mass < -0.1) printf("HELLO\n%lf\n", ot->p->mass);
     ParticleList_append(pl, ot->p);
   }
 }
@@ -291,6 +291,8 @@ void updateWalkHelper(OctTree * ot, double theta, double timeStep, Particle * p)
   double dist = Vector_distance(&p->position, &ot->COM);
   if (theta > ot->sideLength / dist)
   {
+    if (ot->totalMass < 0) {printf("mass err in octTree\n"); exit(1);}
+    
     PhysicsUtils_applyGravitationalForceSingleFast(p, &ot->COM, ot->totalMass);
   }
   else

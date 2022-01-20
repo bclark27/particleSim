@@ -6,6 +6,12 @@
 #include "PhysicsUtils.h"
 #include "ParticleList.h"
 
+///////////////
+//  DEFINES  //
+///////////////
+
+#define HEAT_SEARCH_RADIUS_MULT 2
+
 /////////////
 //  TYPES  //
 /////////////
@@ -13,6 +19,13 @@
 /////////////////////////////
 //  FUNCTION DECLERATIONS  //
 /////////////////////////////
+
+void buildOctTree(ParticleManager * pm, OctTree * ot);
+void updatePmStats(ParticleManager * pm, OctTree * ot);
+void preformFrictionCalculations(ParticleManager * pm, OctTree * ot);
+void preformGravityCalculations(ParticleManager * pm, OctTree * ot);
+double calculateHeatLoss(Particle * p, OctTree * ot, double timeStep);
+void resetAllDeltaStates(ParticleManager * pm);
 
 ////////////////////////
 //  PUBLIC FUNCTIONS  //
@@ -49,12 +62,14 @@ void ParticleManager_loopInit(ParticleManager * pm)
 
 Particle * ParticleManager_loopNext(ParticleManager * pm)
 {
-  if (pm->currIndex >= pm->length) return NULL;
-  Particle * p = pm->currParticle;
-  pm->currParticle++;
-  pm->currIndex++;
-  //
-  // if (!pm->currParticle->inUse) return ParticleManager_loopNext(pm);
+  Particle * p;
+  do
+  {
+    if (pm->currIndex >= pm->length) return NULL;
+    p = pm->currParticle;
+    pm->currParticle++;
+    pm->currIndex++;
+  } while (p->inUse == false);
 
   return p;
 }
@@ -76,33 +91,90 @@ void ParticleManager_addFormation(ParticleManager * pm, ParticleFormation * pf)
 
 void ParticleManager_updateParticles(ParticleManager * pm)
 {
-  //if (pm->particles[0].inUse) printf("HERE\n");
 
   /////////////////////////////////////
   //  insert particles into the tree //
   /////////////////////////////////////
+  OctTree * ot = OctTree_init(&(Vec3){0, 0, 0}, pm->spaceCubeSideLength);
+  buildOctTree(pm, ot);
+  resetAllDeltaStates(pm);
 
-  Vec3 zero = {0, 0, 0};
-  OctTree * ot = OctTree_init(&zero, pm->spaceCubeSideLength);
+  // set the pm stats
+  updatePmStats(pm, ot);
+
+  /////////////////////////////////////////////////////////////////////////
+  //  apply friction from drag force  (before gravity changes veloctiy)  //
+  /////////////////////////////////////////////////////////////////////////
+
+  preformFrictionCalculations(pm, ot);
+
+  ///////////////////////////////////
+  //  add velocity due to gravity  //
+  ///////////////////////////////////
+
+  preformGravityCalculations(pm, ot);
+
+  ////////////////////////////////
+  //  update particle velocity  //
+  ////////////////////////////////
+
   for (unsigned int i = 0; i < pm->length; i++)
   {
     if (!pm->particles[i].inUse) continue;
+    Particle_addNetVelocity(&pm->particles[i]);
+  }
 
+  /////////////////////////////////
+  //  update positions and heat  //
+  /////////////////////////////////
+
+
+  for (unsigned int i = 0; i < pm->length; i++)
+  {
+    if (!pm->particles[i].inUse) continue;
+    PhysicsUtils_updateParticalPosition(&pm->particles[i], pm->timeStep);
+    // pm->particles[i].heatJoulesDelta += calculateHeatLoss(&pm->particles[i], ot, pm->timeStep);
+  }
+
+  // for (unsigned int i = 0; i < pm->length; i++)
+  // {
+  //   if (!pm->particles[i].inUse) continue;
+  //   PhysicsUtils_updateHeatEnergy(&pm->particles[i], pm->timeStep);
+  // }
+
+  OctTree_free(ot, false);
+}
+
+////////////////////////
+//  PRIVATE FUNCTIONS //
+////////////////////////
+
+void buildOctTree(ParticleManager * pm, OctTree * ot)
+{
+  for (unsigned int i = 0; i < pm->length; i++)
+  {
+    if (!pm->particles[i].inUse) continue;
     if (!OctTree_insertParticle(ot, &pm->particles[i]))
     {
       //printf("%lf, %lf, %lf\n", pm->particles[i].position.x, pm->particles[i].position.y, pm->particles[i].position.z);
       pm->particles[i].inUse = false;
     }
   }
+}
 
-  //set the COM
+void updatePmStats(ParticleManager * pm, OctTree * ot)
+{
   pm->COM = ot->COM;
 
-  /////////////////////////////////////////////////////////////////////////
-  //  apply friction from drag force  (before gravity changes veloctiy)  //
-  /////////////////////////////////////////////////////////////////////////
+  pm->particleCount = 0;
+  pm->mass = 0;
+  pm->heat = 0;
+  OctTree_particleAreaStatsQueery(ot, &ot->position, ot->sideLength, &pm->particleCount, &pm->mass, &pm->heat);
 
+}
 
+void preformFrictionCalculations(ParticleManager * pm, OctTree * ot)
+{
   ParticleList * pl = ParticleList_init();
   Particle * this = pm->particles;
   Particle * other;
@@ -135,20 +207,6 @@ void ParticleManager_updateParticles(ParticleManager * pm)
         other->position.x == this->position.x ||
         other->position.y == this->position.y ||
         other->position.z == this->position.z) continue;
-
-      if (other->mass < -0.1 || this->mass < -0.1)
-      {
-        printf("weird particle mass bug? something wrong with storing and getting from tree and list maybe\n");
-        printf("%lf\n", other->mass);
-        printf("%lf\n", this->mass);
-        //printf("%lf\n", pl->particles[k].mass);
-        for (unsigned int i = 0; i < pm->length; i++)
-        {
-          Particle * this = &pm->particles[i];
-          printf("Mass: %lf\n", this->mass);
-        }
-        exit(1);
-      }
 
       double dist = Vector_distance(&this->position, &other->position);
 
@@ -198,14 +256,16 @@ void ParticleManager_updateParticles(ParticleManager * pm)
       Vector_scale(&dragVelocityOther, dragForceNewtonsOther / other->mass);
 
       //calculate final relative velocity
-      Vector_addCpy(&finalRelitiveVelocityThis, &dragVelocityThis, &this->velocity);
-      Vector_addCpy(&finalRelitiveVelocityOther, &dragVelocityOther, &other->velocity);
+      Vector_addCpy(&finalRelitiveVelocityThis, &dragVelocityThis, &initialRelitiveVelocityThis);
+      Vector_addCpy(&finalRelitiveVelocityOther, &dragVelocityOther, &initialRelitiveVelocityOther);
 
-      // finalRelitiveVelocityThis = dragVelocityThis;
-      // finalRelitiveVelocityOther = dragVelocityOther;
       //calculate energy lost due to heat from initial and final relative velocities
       double enerygyLossThis = PhysicsUtils_calculateEnergyLoss(&initialRelitiveVelocityThis, &finalRelitiveVelocityThis, this->mass);
       double enerygyLossOther = PhysicsUtils_calculateEnergyLoss(&initialRelitiveVelocityOther, &finalRelitiveVelocityOther, other->mass);
+
+
+      // if (enerygyLossThis < 0) enerygyLossThis *= -1;
+      // if (enerygyLossOther < 0) enerygyLossOther *= -1;
 
       // printf("%lf\n", Vector_length(&dragVelocityOther));
 
@@ -213,55 +273,61 @@ void ParticleManager_updateParticles(ParticleManager * pm)
       Vector_add(&this->netAddedVelocity, &dragVelocityThis);
       Vector_add(&other->netAddedVelocity, &dragVelocityOther);
 
-      this->heatJoules += enerygyLossThis;
-      other->heatJoules += enerygyLossOther;
+      this->heatJoulesDelta += enerygyLossThis;
+      other->heatJoulesDelta += enerygyLossOther;
 
-      //if (thisInitSpeed < thisFinalSpeed || otherInitSpeed < otherFinalSpeed) exit(1);
+      // if (enerygyLossThis > 0 || enerygyLossOther > 0)
+      // {
+      //   printf("%lf, %lf\n", PhysicsUtils_joulesToKelvin(enerygyLossThis), PhysicsUtils_joulesToKelvin(enerygyLossOther));
+      //   exit(1);
+      // }
+
       other++;
 
     }
     this++;
   }
   ParticleList_freeList(pl);
+}
 
-
-  ///////////////////////////////////
-  //  add velocity due to gravity  //
-  ///////////////////////////////////
-
+void preformGravityCalculations(ParticleManager * pm, OctTree * ot)
+{
   for (unsigned int i = 0; i < pm->length; i++)
   {
     if (!pm->particles[i].inUse) continue;
     OctTree_updateVelocitySingle(ot, pm->thetaAccuracy, pm->timeStep, &pm->particles[i]);
   }
-
-  ////////////////////////////////
-  //  update particle velocity  //
-  ////////////////////////////////
-
-  for (unsigned int i = 0; i < pm->length; i++)
-  {
-    if (!pm->particles[i].inUse) continue;
-    Particle_addNetVelocity(&pm->particles[i]);
-  }
-
-  /////////////////////////////////
-  //  update positions and heat  //
-  /////////////////////////////////
-
-  for (unsigned int i = 0; i < pm->length; i++)
-  {
-    if (!pm->particles[i].inUse) continue;
-    PhysicsUtils_updateParticalPosition(&pm->particles[i], pm->timeStep);
-    // PhysicsUtils_updateHeatEnergy(&pm->particles[0], pm->timeStep);
-
-  }
-  // printf("%lf\n", pm->particles[0].position.x);
-  // printf("%lf\n===\n", pm->particles[0].position.x);
-
-  OctTree_free(ot, false);
 }
 
-////////////////////////
-//  PRIVATE FUNCTIONS //
-////////////////////////
+double calculateHeatLoss(Particle * p, OctTree * ot, double timeStep)
+{
+  unsigned int queeryCount = 0;
+  double queeryMass = 0;
+  double queeryHeat = 0;
+  double searchRadius = HEAT_SEARCH_RADIUS_MULT;// * pm->particles[i].radius;
+  OctTree_particleAreaStatsQueery(ot, &(Vec3){p->position.x - searchRadius,
+                                            p->position.y - searchRadius,
+                                            p->position.z - searchRadius},
+                                            searchRadius * 2,
+                                            &queeryCount,
+                                            &queeryMass,
+                                            &queeryHeat);
+  queeryHeat -= p->heatJoules;
+  queeryCount--;
+
+  if (queeryCount) queeryHeat /= queeryCount;
+  else queeryHeat = 0;
+  double surroundingKelvin = PhysicsUtils_joulesToKelvin(queeryHeat);
+  return PhysicsUtils_calculateHeatDelta(p->coolingConstant, p->heatJoules, surroundingKelvin, timeStep);
+}
+
+void resetAllDeltaStates(ParticleManager * pm)
+{
+  for (unsigned int i = 0; i < pm->length; i++)
+  {
+    if (!pm->particles[i].inUse) continue;
+
+    Particle_resetDeltaStates(&pm->particles[i]);
+
+  }
+}

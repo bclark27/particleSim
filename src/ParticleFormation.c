@@ -33,7 +33,7 @@ void ParticleFormation_free(ParticleFormation * pf)
   free(pf);
 }
 
-void ParticleFormation_cloudFormation(ParticleFormation * pf, unsigned int particleCount, double x, double y, double z, double avgParticleMass, double avgDensity, double radius, double velRand, double massRand, double densityRand)
+void ParticleFormation_cloudFormation(ParticleFormation * pf, unsigned int particleCount, Vec3 pos, Vec3 vel, double avgParticleMass, double avgDensity, double radius, double velRand, double massRand, double densityRand)
 {
   if (particleCount == 0) return;
 
@@ -42,17 +42,18 @@ void ParticleFormation_cloudFormation(ParticleFormation * pf, unsigned int parti
   {
     Particle_init(&(pf->particles[i]));
 
-    pf->particles[i].position.x = x + (RAND_DOUBLE * radius);
-    pf->particles[i].position.y = y + (RAND_DOUBLE * radius);
-    pf->particles[i].position.z = z + (RAND_DOUBLE * radius);
+    pf->particles[i].position.x = pos.x + (RAND_DOUBLE * radius);
+    pf->particles[i].position.y = pos.y + (RAND_DOUBLE * radius);
+    pf->particles[i].position.z = pos.z + (RAND_DOUBLE * radius);
 
-    pf->particles[i].velocity.x = x + (RAND_DOUBLE * velRand);
-    pf->particles[i].velocity.y = y + (RAND_DOUBLE * velRand);
-    pf->particles[i].velocity.z = z + (RAND_DOUBLE * velRand);
+    pf->particles[i].velocity.x = vel.x + (RAND_DOUBLE * velRand);
+    pf->particles[i].velocity.y = vel.y + (RAND_DOUBLE * velRand);
+    pf->particles[i].velocity.z = vel.z + (RAND_DOUBLE * velRand);
 
     Particle_setMass(&pf->particles[i], avgParticleMass + (RAND_DOUBLE * avgParticleMass * massRand));
     Particle_setDensity(&pf->particles[i], avgDensity + (RAND_DOUBLE * avgDensity * densityRand));
   }
+
 }
 
 void ParticleFormation_singularity(ParticleFormation * pf, double x, double y, double z, double mass)
@@ -70,6 +71,25 @@ void ParticleFormation_singularity(ParticleFormation * pf, double x, double y, d
   setParticleArraySize(pf, 1);
 
   p.fixed = true;
+
+  pf->particles[0] = p;
+}
+
+void ParticleFormation_singleParticle(ParticleFormation * pf, Vec3 pos, double mass, double density)
+{
+  Particle p;
+  Particle_init(&p);
+
+  p.position.x = pos.x;
+  p.position.y = pos.y;
+  p.position.z = pos.z;
+
+  Particle_setMass(&p, mass);
+  Particle_setDensity(&p, density);
+
+  setParticleArraySize(pf, 1);
+
+  p.fixed = false;
 
   pf->particles[0] = p;
 }

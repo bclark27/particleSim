@@ -16,7 +16,8 @@ typedef struct Particle
   Vec3 velocity;
   Vec3 netAddedVelocity;
   double heatJoules;
-  double lostHeatJoules;
+  double heatJoulesDelta;
+  double transparency; // transparencyLevel(0 - 1) / depth(meters) 
 
   //4 byte
   float mass;
@@ -26,6 +27,7 @@ typedef struct Particle
   float radius;
   float volume;
   float coolingConstant;
+  float specificHeatCapacity;
 
   //2 byte
 
@@ -45,5 +47,6 @@ void Particle_addNetVelocity(Particle * p);
 
 void Particle_setMass(Particle * p, double mass);
 void Particle_setDensity(Particle * p, double density);
+void Particle_resetDeltaStates(Particle * p);
 
 #endif

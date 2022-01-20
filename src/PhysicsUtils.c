@@ -25,8 +25,6 @@ Vec3 unitVec2;
 //  FUNCTION DECLERATIONS  //
 /////////////////////////////
 
-double calculateHeatLoss(double objectTemp, double surroundingTemp, double coolingConst, double timeStep);
-
 ////////////////////////
 //  PUBLIC FUNCTIONS  //
 ////////////////////////
@@ -73,16 +71,12 @@ void PhysicsUtils_applyGravitationalForceSingle(Particle * p1, Particle * p2)
   Vector_normalize(&unitVec1);
   Vector_scale(&unitVec1, a1);
   Vector_add(&p1->netAddedVelocity, &unitVec1);
-
-  if (Vector_length(&p1->netAddedVelocity) > SPEED_OF_LIGHT)
-  {
-    printf("2:%lf, %lf\n", Vector_length(&unitVec1), a1);
-    exit(1);
-  }
 }
 
 void PhysicsUtils_applyGravitationalForceSingleFast(Particle * p1, Vec3 * vec, double mass)
 {
+  //if (mass < 0) {printf("mass err\n"); exit(1);}
+
   double r = Vector_distance(&p1->position, vec);
   double r2 = r * r;
 
@@ -95,12 +89,6 @@ void PhysicsUtils_applyGravitationalForceSingleFast(Particle * p1, Vec3 * vec, d
   Vector_normalize(&unitVec1);
   Vector_scale(&unitVec1, a1);
   Vector_add(&p1->netAddedVelocity, &unitVec1);
-
-  if (Vector_length(&p1->netAddedVelocity) > SPEED_OF_LIGHT)
-  {
-    printf("1:%lf, %lf\n", Vector_length(&unitVec1), r2);
-    exit(1);
-  }
 }
 
 void PhysicsUtils_updateParticalPosition(Particle * p, double timeStep)
@@ -146,20 +134,29 @@ double PhysicsUtils_calculateEnergyLoss(Vec3 * velocityInitial, Vec3 * velocityF
 {
   double vInit = Vector_length(velocityInitial);
   double vFinal = Vector_length(velocityFinal);
-  return 0.5 * mass * (vInit * vInit - vFinal * vFinal);
+  return 0.5 * mass * ((vInit * vInit) - (vFinal * vFinal));
 }
 
 void PhysicsUtils_updateHeatEnergy(Particle * p, double timeStep)
 {
-  p->lostHeatJoules = PhysicsUtils_calculateRadiationGiveOff(p, timeStep);
-  p->heatJoules -= p->lostHeatJoules;
+  p->heatJoules += p->heatJoulesDelta;
+}
+
+double PhysicsUtils_calculateHeatDelta(double coolingConstant, double currentTemp, double surroundingTemp, double timeStep)
+{
+  double newTemp = PhysicsUtils_calculateHeatChange(PhysicsUtils_joulesToKelvin(currentTemp),
+                                                        surroundingTemp,
+                                                        coolingConstant,
+                                                        timeStep);
+  double newJoules = PhysicsUtils_KelvinToJoules(newTemp);
+
+  return newJoules - currentTemp;
 }
 
 double PhysicsUtils_calculateRadiationGiveOff(Particle * p, double timeStep)
 {
   double kelvin = PhysicsUtils_joulesToKelvin(p->heatJoules);
-  double newTemp = calculateHeatLoss(kelvin, 0, p->coolingConstant, timeStep);
-  return PhysicsUtils_KelvinToJoules(kelvin - newTemp);
+  return STEFAN_BOLTZMANN_CONSTANT * kelvin * kelvin * kelvin * kelvin;
 }
 
 double PhysicsUtils_joulesToKelvin(double joules)
@@ -172,11 +169,10 @@ double PhysicsUtils_KelvinToJoules(double kelvin)
   return kelvin * BOLTZMANN_CONSTANT;
 }
 
-/////////////////////////
-//  PRIVATE FUNCTIONS  //
-/////////////////////////
-
-double calculateHeatLoss(double objectTemp, double surroundingTemp, double coolingConst, double timeStep)
+double PhysicsUtils_calculateHeatChange(double objectTemp, double surroundingTemp, double coolingConst, double timeStep)
 {
   return surroundingTemp + (objectTemp - surroundingTemp) * pow(E, -coolingConst * timeStep);
 }
+/////////////////////////
+//  PRIVATE FUNCTIONS  //
+/////////////////////////

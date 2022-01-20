@@ -21,8 +21,10 @@ void Particle_init(Particle * p)
 
   p->mass = 1;
   p->density = 500;
-  p->heatJoules = 0.0000000000000000001;
+  p->heatJoules = 0;
   p->coolingConstant = 0.0015;
+  p->specificHeatCapacity = 4.12;
+  p->transparency = 0.001;
 
   updateConstants(p);
 
@@ -56,6 +58,12 @@ void Particle_setDensity(Particle * p, double density)
 {
   p->density = density;
   updateConstants(p);
+}
+
+void Particle_resetDeltaStates(Particle * p)
+{
+  Vector_zeroize(&p->netAddedVelocity);
+  p->heatJoulesDelta = 0;
 }
 
 /////////////////////////

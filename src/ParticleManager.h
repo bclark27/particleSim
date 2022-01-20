@@ -20,6 +20,11 @@ typedef struct ParticleManager
   double spaceCubeSideLength;
   double thetaAccuracy;
   Vec3 COM;
+
+  // stats 
+  double mass;
+  double heat;
+  unsigned int particleCount;
 } ParticleManager;
 
 /////////////////////////////
