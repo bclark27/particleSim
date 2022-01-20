@@ -61,7 +61,6 @@ void Render_renderBuffers(Render * r, ParticleManager * pm, Camera * cam)
 
       double objRadius = p->radius;
       double dist = Vector_distance(&cam->cameraPosition, &p->position);
-      if (dist == 0) continue;
 
       double fovRadius = dist * atan(DEG_TO_RAD(cam->fov) / 2);
       double screenRadius = (objRadius / fovRadius) * r->size;
@@ -74,6 +73,7 @@ void Render_renderBuffers(Render * r, ParticleManager * pm, Camera * cam)
           int x = pixX + dx;
           int y = pixY + dy;
           int index = y * r->size + x;
+
           double pixDist = sqrt(dx * dx + dy * dy);
           if (x < 0 || y < 0 || x >= r->size || y >= r->size ||
             pixDist > screenRadius * screenRadius) continue;

@@ -21,10 +21,10 @@ int main()
 {
 
   ParticleManager * pm = ParticleManager_init(10e20, 0.9);
-  ParticleManager_setTimeStep(pm, 1);
+  ParticleManager_setTimeStep(pm, 100000000);
 
   Camera * cam = Camera_init();
-  Camera_setNearFarPlane(cam, 0.01, 100000);
+  Camera_setNearFarPlane(cam, 0.01, 10000000);
 
   TextDisplay * td = TextDisplay_init();
   Render * render = Render_init(1000);
@@ -33,23 +33,25 @@ int main()
 
   int pcount = 3000;
   int countPerCloud = pcount / 3;
-  Vec3 startPos = {-10000, -10000, 0};
-  Vec3 startVel = {0, 24, 0};
-  int cloudRadius = 8000;
+  Vec3 startPos = {-0, -0, 0};
+  Vec3 startVel = {0, 0, 0};
+  double cloudRadius = 400;
+  double totalMass = 10e8;
+  double massPerParticle = 1000;//totalMass / pcount;
 
-  ParticleFormation_cloudFormation(pf, countPerCloud, startPos, startVel, 10000, 0.0000122, cloudRadius, 0, 0, 0);
+  ParticleFormation_cloudFormation(pf, countPerCloud, startPos, startVel, massPerParticle, .4513, cloudRadius, 0, 0, 0);
   ParticleManager_addFormation(pm, pf);
 
-  ParticleFormation_cloudFormation(pf, countPerCloud, startPos, startVel, 10000, 0.00122, cloudRadius, 0, 0, 0);
+  ParticleFormation_cloudFormation(pf, countPerCloud, startPos, startVel, massPerParticle, .5513, cloudRadius, 0, 0, 0);
   ParticleManager_addFormation(pm, pf);
 
-  ParticleFormation_cloudFormation(pf, countPerCloud, startPos, startVel, 10000, 0.122, cloudRadius, 0, 0, 0);
+  ParticleFormation_cloudFormation(pf, countPerCloud, startPos, startVel, massPerParticle, .3513, cloudRadius, 0, 0, 0);
   ParticleManager_addFormation(pm, pf);
 
   // neut star
   // ParticleFormation_singleParticle(pf, 10000, 0, 0, 10e29, 10e17);
-  ParticleFormation_singleParticle(pf, (Vec3){0, 0, 0}, 10e16, 10e10);
-  ParticleManager_addFormation(pm, pf);
+  // ParticleFormation_singleParticle(pf, (Vec3){0, 0, 0}, 10e31, 10e17);
+  // ParticleManager_addFormation(pm, pf);
 
   // point r=10m
   // ParticleFormation_singleParticle(pf, 0, 0, 0, 18550319, 7873);
@@ -63,14 +65,14 @@ int main()
   ParticleFormation_free(pf);
 
   unsigned long int i = 0;
-  unsigned int skip = 3;
+  unsigned int skip = 1;
 
-  double dist = 30000;
+  double dist = 1000;
   Vec3 camPos = {0, 0, dist};
   Camera_setPosition(cam, &camPos);
   Vec3 angles = {0, 0, 0};
   double theta = 0;
-  double rotation = 0.01;
+  double rotation = 0.0;
 
   while(true)//for (int i = 0; i < 10000000; i++)
   {

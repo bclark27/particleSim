@@ -204,9 +204,9 @@ void preformFrictionCalculations(ParticleManager * pm, OctTree * ot)
     {
 
       if (!other->inUse ||
-        other->position.x == this->position.x ||
-        other->position.y == this->position.y ||
-        other->position.z == this->position.z) continue;
+        (other->position.x == this->position.x &&
+        other->position.y == this->position.y &&
+        other->position.z == this->position.z)) continue;
 
       double dist = Vector_distance(&this->position, &other->position);
 

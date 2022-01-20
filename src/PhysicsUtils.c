@@ -25,6 +25,9 @@ Vec3 unitVec2;
 //  FUNCTION DECLERATIONS  //
 /////////////////////////////
 
+inline double speedOfLightForceCap(double force);
+void speedOfLightVelocityCap(Vec3 * vel);
+
 ////////////////////////
 //  PUBLIC FUNCTIONS  //
 ////////////////////////
@@ -38,8 +41,8 @@ void PhysicsUtils_applyGravitationalForcePair(Particle * p1, Particle * p2)
   // F = G * (m1 * m2) / r^2
   // a = F / m
 
-  double a1 = BIG_G * (p2->mass / r2);
-  double a2 = BIG_G * (p1->mass / r2);
+  double a1 = speedOfLightForceCap(BIG_G * (p2->mass / r2));
+  double a2 = speedOfLightForceCap(BIG_G * (p1->mass / r2));
 
   Vector_difference(&unitVec1, &p2->position, &p1->position);
 
@@ -65,7 +68,7 @@ void PhysicsUtils_applyGravitationalForceSingle(Particle * p1, Particle * p2)
   // F = G * (m1 * m2) / r^2
   // a = F / m
 
-  double a1 = BIG_G * (p2->mass / r2);
+  double a1 = speedOfLightForceCap(BIG_G * (p2->mass / r2));
 
   Vector_difference(&unitVec1, &p2->position, &p1->position);
   Vector_normalize(&unitVec1);
@@ -83,7 +86,7 @@ void PhysicsUtils_applyGravitationalForceSingleFast(Particle * p1, Vec3 * vec, d
   // F = G * (m1 * m2) / r^2
   // a = F / m
 
-  double a1 = BIG_G * (mass / r2);
+  double a1 = speedOfLightForceCap(BIG_G * (mass / r2));
 
   Vector_difference(&unitVec1, vec, &p1->position);
   Vector_normalize(&unitVec1);
@@ -95,6 +98,7 @@ void PhysicsUtils_updateParticalPosition(Particle * p, double timeStep)
 {
 
   if (p->fixed) return;
+  speedOfLightVelocityCap(&p->velocity);
   p->position.x += p->velocity.x * timeStep;
   p->position.y += p->velocity.y * timeStep;
   p->position.z += p->velocity.z * timeStep;
@@ -176,3 +180,17 @@ double PhysicsUtils_calculateHeatChange(double objectTemp, double surroundingTem
 /////////////////////////
 //  PRIVATE FUNCTIONS  //
 /////////////////////////
+
+inline double speedOfLightForceCap(double force)
+{
+  if (force < 1) return force;
+  return -pow(E, ((-force / SPEED_OF_LIGHT) + SPEED_OF_LIGHT_LN)) + SPEED_OF_LIGHT;
+}
+
+void speedOfLightVelocityCap(Vec3 * vel)
+{
+  double len = Vector_length(vel);
+  len = MIN(SPEED_OF_LIGHT, len);
+  Vector_normalize(vel);
+  Vector_scale(vel, len);
+}
