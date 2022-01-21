@@ -95,6 +95,9 @@ void ParticleManager_updateParticles(ParticleManager * pm)
   /////////////////////////////////////
   //  insert particles into the tree //
   /////////////////////////////////////
+
+
+
   OctTree * ot = OctTree_init(&(Vec3){0, 0, 0}, pm->spaceCubeSideLength);
   buildOctTree(pm, ot);
   resetAllDeltaStates(pm);
@@ -102,11 +105,14 @@ void ParticleManager_updateParticles(ParticleManager * pm)
   // set the pm stats
   updatePmStats(pm, ot);
 
+
   /////////////////////////////////////////////////////////////////////////
   //  apply friction from drag force  (before gravity changes veloctiy)  //
   /////////////////////////////////////////////////////////////////////////
 
+
   preformFrictionCalculations(pm, ot);
+
 
   ///////////////////////////////////
   //  add velocity due to gravity  //
@@ -199,14 +205,28 @@ void preformFrictionCalculations(ParticleManager * pm, OctTree * ot)
 
     OctTree_queeryParticlesInArea(ot, pl, &searchOrigin, searchRadius);
 
+    // printf("===\n");
+    // for (int i = 0; i < pm->length; i++)
+    // {
+    //   if (pm->particles[i].inUse)
+    //   {
+    //     printf("%i is in use\n", i);
+    //   }
+    //   else
+    //   {
+    //     printf("%i is in not use\n", i);
+    //   }
+    // }
+    //
+    // printf("%i\n", pl->elementCount);
+
     other = pl->particles;
     for (int k = 0; k < pl->elementCount; k++)
     {
 
-      if (!other->inUse ||
-        (other->position.x == this->position.x &&
-        other->position.y == this->position.y &&
-        other->position.z == this->position.z)) continue;
+      if (!other->inUse) continue;
+
+      if (other == this) continue;
 
       double dist = Vector_distance(&this->position, &other->position);
 

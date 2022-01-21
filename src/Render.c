@@ -51,16 +51,18 @@ void Render_renderBuffers(Render * r, ParticleManager * pm, Camera * cam)
   Vec3 ans;
   unsigned int pixX;
   unsigned int pixY;
-
+  int i = 0;
   while (p)
   {
+
     if (p->inUse && Camera_projectVec3Point(cam, &p->position, &ans))
     {
+
       pixX = (0.5 * (ans.x + 1)) * r->size;
       pixY = (1 - (ans.y + 1) * 0.5) * r->size;
 
       double objRadius = p->radius;
-      double dist = Vector_distance(&cam->cameraPosition, &p->position);
+      double dist = Vector_distance(&cam->cameraPosition, &p->position) * 2.6;
 
       double fovRadius = dist * atan(DEG_TO_RAD(cam->fov) / 2);
       double screenRadius = (objRadius / fovRadius) * r->size;

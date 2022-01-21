@@ -81,6 +81,7 @@ void PhysicsUtils_applyGravitationalForceSingleFast(Particle * p1, Vec3 * vec, d
   //if (mass < 0) {printf("mass err\n"); exit(1);}
 
   double r = Vector_distance(&p1->position, vec);
+  if (p1->radius > r) return;
   double r2 = r * r;
 
   // F = G * (m1 * m2) / r^2
@@ -177,6 +178,12 @@ double PhysicsUtils_calculateHeatChange(double objectTemp, double surroundingTem
 {
   return surroundingTemp + (objectTemp - surroundingTemp) * pow(E, -coolingConst * timeStep);
 }
+
+double PhysicsUtils_calculateSchwarzschildRadius(double mass)
+{
+  return (2 * mass * BIG_G) / (SPEED_OF_LIGHT * SPEED_OF_LIGHT);
+}
+
 /////////////////////////
 //  PRIVATE FUNCTIONS  //
 /////////////////////////
@@ -190,7 +197,8 @@ inline double speedOfLightForceCap(double force)
 void speedOfLightVelocityCap(Vec3 * vel)
 {
   double len = Vector_length(vel);
-  len = MIN(SPEED_OF_LIGHT, len);
+  if (len < SPEED_OF_LIGHT) return;
+  len = SPEED_OF_LIGHT;
   Vector_normalize(vel);
   Vector_scale(vel, len);
 }

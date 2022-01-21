@@ -26,4 +26,5 @@ double PhysicsUtils_calculateRadiationGiveOff(Particle * p, double timeStep);
 double PhysicsUtils_joulesToKelvin(double joules);
 double PhysicsUtils_KelvinToJoules(double kelvin);
 double PhysicsUtils_calculateHeatChange(double objectTemp, double surroundingTemp, double coolingConst, double timeStep);
+double PhysicsUtils_calculateSchwarzschildRadius(double mass);
 #endif

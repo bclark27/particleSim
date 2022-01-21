@@ -292,7 +292,7 @@ void updateWalkHelper(OctTree * ot, double theta, double timeStep, Particle * p)
   if (theta > ot->sideLength / dist)
   {
     if (ot->totalMass < 0) {printf("mass err in octTree\n"); exit(1);}
-    
+
     PhysicsUtils_applyGravitationalForceSingleFast(p, &ot->COM, ot->totalMass);
   }
   else

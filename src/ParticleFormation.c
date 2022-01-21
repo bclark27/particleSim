@@ -2,6 +2,7 @@
 
 #include "ParticleFormation.h"
 #include "UniversalConstants.h"
+#include "PhysicsUtils.h"
 
 /////////////
 //  TYPES  //
@@ -86,6 +87,26 @@ void ParticleFormation_singleParticle(ParticleFormation * pf, Vec3 pos, double m
 
   Particle_setMass(&p, mass);
   Particle_setDensity(&p, density);
+
+  setParticleArraySize(pf, 1);
+
+  p.fixed = false;
+
+  pf->particles[0] = p;
+}
+
+void ParticleFormation_blackHole(ParticleFormation * pf, Vec3 pos, Vec3 vel, double mass)
+{
+  Particle p;
+  Particle_init(&p);
+
+  p.position.x = pos.x;
+  p.position.y = pos.y;
+  p.position.z = pos.z;
+
+  Particle_setMass(&p, mass);
+  double shwartzRadius = PhysicsUtils_calculateSchwarzschildRadius(mass);
+  Particle_setDensity(&p, mass / ((4 * PI * shwartzRadius * shwartzRadius * shwartzRadius) / 3));
 
   setParticleArraySize(pf, 1);
 

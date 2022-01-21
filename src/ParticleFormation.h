@@ -27,4 +27,6 @@ void ParticleFormation_appendParticles(ParticleFormation * dest, ParticleFormati
 void ParticleFormation_cloudFormation(ParticleFormation * pf, unsigned int particleCount, Vec3 pos, Vec3 vel, double avgParticleMass, double avgDensity, double radius, double velRand, double massRand, double densityRand);
 void ParticleFormation_singularity(ParticleFormation * pf, double x, double y, double z, double mass);
 void ParticleFormation_singleParticle(ParticleFormation * pf, Vec3 pos, double mass, double density);
+void ParticleFormation_blackHole(ParticleFormation * pf, Vec3 pos, Vec3 vel, double mass);
+
 #endif
