@@ -1,6 +1,7 @@
 #include "Common.h"
 
 #include "Particle.h"
+#include "PhysicsUtils.h"
 
 /////////////////////////////
 //  FUNCTION DECLERATIONS  //
@@ -21,10 +22,10 @@ void Particle_init(Particle * p)
 
   p->mass = 1;
   p->density = 500;
-  p->heatJoules = 0;
-  p->coolingConstant = 0.0015;
+  p->heatJoules = 0.0000000000000000000001;
+  p->coolingConstant = 0.000000015;
   p->specificHeatCapacity = 4.12;
-  p->transparency = 0.001;
+  p->luminocity = 0;
 
   updateConstants(p);
 
@@ -37,15 +38,15 @@ double Particle_getRadius(Particle * p)
   return cbrt((3 * p->mass) / (4 * PI * p->density));
 }
 
-double Particle_getLumuns(Particle * p)
-{
-
-}
-
 void Particle_addNetVelocity(Particle * p)
 {
   Vector_add(&p->velocity, &p->netAddedVelocity);
   Vector_zeroize(&p->netAddedVelocity);
+}
+
+double Particle_getBrightness(Particle * p, double dist)
+{
+  return PhysicsUtils_calculateBrightness(p, dist);
 }
 
 void Particle_setMass(Particle * p, double mass)

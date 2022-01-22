@@ -130,16 +130,28 @@ void ParticleManager_updateParticles(ParticleManager * pm)
     Particle_addNetVelocity(&pm->particles[i]);
   }
 
-  /////////////////////////////////
-  //  update positions and heat  //
-  /////////////////////////////////
+  // add delta heat to actuall heat via heat capacity
+  Particle * p;
+  for (unsigned int i = 0; i < pm->length; i++)
+  {
+    p = &pm->particles[i];
+    if (!p->inUse) continue;
+    double jourlesGained = PhysicsUtils_calcEnergyGainedByParticle(p, pm->timeStep);
+    p->heatJoules += jourlesGained;
 
+    p->luminocity = PhysicsUtils_calculateLumuns(p);
+  }
+
+  ////////////////////////
+  //  update positions  //
+  ////////////////////////
 
   for (unsigned int i = 0; i < pm->length; i++)
   {
-    if (!pm->particles[i].inUse) continue;
-    PhysicsUtils_updateParticalPosition(&pm->particles[i], pm->timeStep);
-    // pm->particles[i].heatJoulesDelta += calculateHeatLoss(&pm->particles[i], ot, pm->timeStep);
+    p = &pm->particles[i];
+    if (!p->inUse) continue;
+    PhysicsUtils_updateParticalPosition(p, pm->timeStep);
+    p->heatJoules += calculateHeatLoss(p, ot, pm->timeStep);
   }
 
   // for (unsigned int i = 0; i < pm->length; i++)
@@ -205,28 +217,15 @@ void preformFrictionCalculations(ParticleManager * pm, OctTree * ot)
 
     OctTree_queeryParticlesInArea(ot, pl, &searchOrigin, searchRadius);
 
-    // printf("===\n");
-    // for (int i = 0; i < pm->length; i++)
-    // {
-    //   if (pm->particles[i].inUse)
-    //   {
-    //     printf("%i is in use\n", i);
-    //   }
-    //   else
-    //   {
-    //     printf("%i is in not use\n", i);
-    //   }
-    // }
-    //
-    // printf("%i\n", pl->elementCount);
-
     other = pl->particles;
     for (int k = 0; k < pl->elementCount; k++)
     {
 
       if (!other->inUse) continue;
 
-      if (other == this) continue;
+      if (other == this || (other->position.x == this->position.x &&
+                            other->position.y == this->position.y &&
+                          other->position.z == this->position.z)) continue;
 
       double dist = Vector_distance(&this->position, &other->position);
 
@@ -238,7 +237,7 @@ void preformFrictionCalculations(ParticleManager * pm, OctTree * ot)
       //magnitude of velocity is the same for both by definition
       double relitiveVelocity = Vector_length(&initialRelitiveVelocityThis);
 
-      if (relitiveVelocity < 0.0000001) continue;
+      // if (relitiveVelocity < 0.0000001) continue;
 
       double minRadius = MIN(this->radius, other->radius);
       double areaOfContact = PI * minRadius * minRadius;
@@ -247,7 +246,9 @@ void preformFrictionCalculations(ParticleManager * pm, OctTree * ot)
       //if (ok != areaOfContact) printf("%lf, %lf\n", p2Radius, ok);
 
       double dragForceNewtonsThis = PhysicsUtils_dragForce(other->density, areaOfContact, relitiveVelocity);
+      dragForceNewtonsThis = MIN(relitiveVelocity, dragForceNewtonsThis / this->mass);
       double dragForceNewtonsOther = PhysicsUtils_dragForce(this->density, areaOfContact, relitiveVelocity);
+      dragForceNewtonsOther = MIN(relitiveVelocity, dragForceNewtonsOther / other->mass);
 
       if (other->radius * 2 <= dist)
       {
@@ -296,14 +297,111 @@ void preformFrictionCalculations(ParticleManager * pm, OctTree * ot)
       this->heatJoulesDelta += enerygyLossThis;
       other->heatJoulesDelta += enerygyLossOther;
 
-      // if (enerygyLossThis > 0 || enerygyLossOther > 0)
-      // {
-      //   printf("%lf, %lf\n", PhysicsUtils_joulesToKelvin(enerygyLossThis), PhysicsUtils_joulesToKelvin(enerygyLossOther));
-      //   exit(1);
-      // }
+      if (false)//enerygyLossThis < 0 || enerygyLossOther < 0)
+      {
 
+        PhysicsUtils_relitiveVelocities(&initialRelitiveVelocityThis, &initialRelitiveVelocityOther, this, other);
+
+        printf("init rel vel this %lf\n", Vector_length(&initialRelitiveVelocityThis));
+        printf("init rel vel this %lf\n", Vector_length(&initialRelitiveVelocityOther));
+
+
+        printf("mass %lf\n", this->mass);
+        printf("mass %lf\n", other->mass);
+
+
+        //magnitude of velocity is the same for both by definition
+        double relitiveVelocity = Vector_length(&initialRelitiveVelocityThis);
+
+        printf("rel vel %lf\n", relitiveVelocity);
+
+        // if (relitiveVelocity < 0.0000001) continue;
+
+        double minRadius = MIN(this->radius, other->radius);
+        double areaOfContact = PI * minRadius * minRadius;
+
+        printf("areaOfContact %lf\n", areaOfContact);
+        //double ok = MIN(this->crossSectionalArea, other->crossSectionalArea);
+
+        //if (ok != areaOfContact) printf("%lf, %lf\n", p2Radius, ok);
+
+        double dragForceNewtonsThis = PhysicsUtils_dragForce(other->density, areaOfContact, relitiveVelocity);
+        dragForceNewtonsThis = MIN(relitiveVelocity, dragForceNewtonsThis / this->mass);
+        double dragForceNewtonsOther = PhysicsUtils_dragForce(this->density, areaOfContact, relitiveVelocity);
+        dragForceNewtonsOther = MIN(relitiveVelocity, dragForceNewtonsOther / other->mass);
+        printf("this->density %lf\n", this->density);
+        printf("other->density %lf\n", other->density);
+
+        printf("dragForceNewtonsThis %lf\n", dragForceNewtonsThis);
+        printf("dragForceNewtonsOther %lf\n", dragForceNewtonsOther);
+
+        if (other->radius * 2 <= dist)
+        {
+          //if here then p1 can find p2 and p2 can find p1. so
+          //the drag calculations will occure twice on these particles
+          //since the calculation will be the same both times, the fricion force
+          //can be halfed each time so that after each particle finds each other
+          //they add up to the full friction force
+          dragForceNewtonsThis /= 2;
+          dragForceNewtonsOther /= 2;
+        }
+
+        //compute drag force vector
+        dragVelocityThis = initialRelitiveVelocityThis;
+        dragVelocityOther = initialRelitiveVelocityOther;
+
+        // Vector_printVec3(&initialRelitiveVelocityThis);
+        // Vector_printVec3(&initialRelitiveVelocityOther);
+        printf("%lf\n", Vector_length(&dragVelocityThis));
+
+        Vector_scale(&dragVelocityThis, -1);
+        Vector_scale(&dragVelocityOther, -1);
+
+        Vector_normalize(&dragVelocityThis);
+        Vector_normalize(&dragVelocityOther);
+
+        Vector_scale(&dragVelocityThis, dragForceNewtonsThis / this->mass);
+        Vector_scale(&dragVelocityOther, dragForceNewtonsOther / other->mass);
+
+        printf("%lf\n", Vector_length(&dragVelocityThis));
+        printf("%lf\n", Vector_length(&dragVelocityOther));
+
+        // Vector_printVec3(&dragVelocityThis);
+        // Vector_printVec3(&dragVelocityOther);
+
+        //calculate final relative velocity
+        Vector_addCpy(&finalRelitiveVelocityThis, &dragVelocityThis, &initialRelitiveVelocityThis);
+        Vector_addCpy(&finalRelitiveVelocityOther, &dragVelocityOther, &initialRelitiveVelocityOther);
+
+        //calculate energy lost due to heat from initial and final relative velocities
+        double enerygyLossThis = PhysicsUtils_calculateEnergyLoss(&initialRelitiveVelocityThis, &finalRelitiveVelocityThis, this->mass);
+        double enerygyLossOther = PhysicsUtils_calculateEnergyLoss(&initialRelitiveVelocityOther, &finalRelitiveVelocityOther, other->mass);
+
+        printf("enerygyLossThis %lf\n", enerygyLossThis);
+        printf("enerygyLossOther %lf\n", enerygyLossOther);
+
+        printf("Total init energy %lf\n", (relitiveVelocity * relitiveVelocity * this->mass * 0.5) + (relitiveVelocity * relitiveVelocity * other->mass * 0.5));
+
+        printf("Total finl energy %lf\n", (Vector_length(&finalRelitiveVelocityThis) * Vector_length(&finalRelitiveVelocityThis) * this->mass * 0.5) +
+                                          (Vector_length(&finalRelitiveVelocityOther) * Vector_length(&finalRelitiveVelocityOther) * other->mass * 0.5) +
+                                        enerygyLossThis +
+                                      enerygyLossOther);
+
+        Vector_printVec3(&this->velocity);
+        printf("this Init Mag %lf\n", Vector_length(&this->velocity));
+        Vector_add(&this->velocity, &dragVelocityThis);
+        Vector_printVec3(&this->velocity);
+        printf("this Finl Mag %lf\n", Vector_length(&this->velocity));
+
+        Vector_printVec3(&other->velocity);
+        printf("othr Init Mag %lf\n", Vector_length(&other->velocity));
+        Vector_add(&other->velocity, &dragVelocityOther);
+        Vector_printVec3(&other->velocity);
+        printf("othr Init Mag %lf\n", Vector_length(&other->velocity));
+
+        exit(1);
+      }
       other++;
-
     }
     this++;
   }

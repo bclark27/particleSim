@@ -19,6 +19,7 @@ Camera * Camera_init(void)
   Camera * cam = malloc(sizeof(Camera));
   Vector_zeroize(&cam->cameraPosition);
   Vector_zeroize(&cam->cameraRotation);
+  Vector_zeroize(&cam->cameraPointingDirection);
   Vector_zeroizeVec44(&cam->projectionMatrix);
   cam->nearPlane = 1;
   cam->farPlane = 10e15;
@@ -62,7 +63,6 @@ void Camera_updateProjMatrix(Camera * cam)
   Vector_createRotationMatrixZ(&rz, -cam->cameraRotation.z);
 
   Vector_multiplyVec44(&scratch1, &translation, &rx);
-  //Vector_printVec44(&scratch1);
   Vector_multiplyVec44(&scratch2, &scratch1, &ry);
   Vector_multiplyVec44(&scratch1, &scratch2, &rz);
   Vector_multiplyVec44(&cam->projectionMatrix, &scratch1, &perspective);
@@ -116,4 +116,16 @@ void Camera_setRotation(Camera * cam, Vec3 * angles)
 {
   memcpy(&cam->cameraRotation, angles, sizeof(Vec3));
   Camera_updateProjMatrix(cam);
+  // 
+  // cam->cameraPointingDirection.x = 0;
+  // cam->cameraPointingDirection.y = 0;
+  // cam->cameraPointingDirection.z = -1;
+  //
+  // Vec44 rx;
+  // Vec44 ry;
+  // Vec44 rz;
+  //
+  // Vector_createRotationMatrixX(&rx, angles->x);
+  // Vector_createRotationMatrixY(&ry, angles->y);
+  // Vector_createRotationMatrixZ(&rz, angles->z);
 }

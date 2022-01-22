@@ -112,6 +112,13 @@ Vec3 projBOntoDirection;
 void PhysicsUtils_relitiveVelocities(Vec3 * aTob, Vec3 * bToa, Particle * a, Particle * b)
 {
   Vector_difference(&scratch, &a->position, &b->position);
+
+  if (Vector_length(&scratch) == 0)
+  {
+    *aTob = (Vec3){0, 0, 0};
+    *bToa = (Vec3){0, 0, 0};
+  }
+
   Vector_projectOntoR1(&projAOntoDirection, &scratch, &a->velocity);
   Vector_projectOntoR1(&projBOntoDirection, &scratch, &b->velocity);
 
@@ -142,9 +149,9 @@ double PhysicsUtils_calculateEnergyLoss(Vec3 * velocityInitial, Vec3 * velocityF
   return 0.5 * mass * ((vInit * vInit) - (vFinal * vFinal));
 }
 
-void PhysicsUtils_updateHeatEnergy(Particle * p, double timeStep)
+double PhysicsUtils_calcEnergyGainedByParticle(Particle * p, double timeStep)
 {
-  p->heatJoules += p->heatJoulesDelta;
+  return (p->heatJoulesDelta * BOLTZMANN_CONSTANT) / (p->mass * p->specificHeatCapacity);
 }
 
 double PhysicsUtils_calculateHeatDelta(double coolingConstant, double currentTemp, double surroundingTemp, double timeStep)
@@ -162,6 +169,17 @@ double PhysicsUtils_calculateRadiationGiveOff(Particle * p, double timeStep)
 {
   double kelvin = PhysicsUtils_joulesToKelvin(p->heatJoules);
   return STEFAN_BOLTZMANN_CONSTANT * kelvin * kelvin * kelvin * kelvin;
+}
+
+double PhysicsUtils_calculateLumuns(Particle * p)
+{
+  double surfaceTemp = PhysicsUtils_joulesToKelvin(p->heatJoules);
+  return p->surfaceArea * STEFAN_BOLTZMANN_CONSTANT * surfaceTemp * surfaceTemp * surfaceTemp * surfaceTemp;
+}
+
+double PhysicsUtils_calculateBrightness(Particle * p, double dist)
+{
+  return p->luminocity / (4 * PI * dist * dist);
 }
 
 double PhysicsUtils_joulesToKelvin(double joules)

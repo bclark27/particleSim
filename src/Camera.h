@@ -12,6 +12,7 @@ typedef struct Camera
 {
   Vec3 cameraPosition;
   Vec3 cameraRotation;
+  Vec3 cameraPointingDirection;
   Vec44 projectionMatrix;
   double nearPlane;
   double farPlane;

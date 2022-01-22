@@ -26,15 +26,31 @@ void clearText(TextDisplay * td);
 void rendererToText(TextDisplay * td, Render * render);
 void printStats(TextDisplay * td, ParticleManager * pm);
 void printText(TextDisplay * td);
+void changeColor(unsigned char val);
 
 /////////////////////////
 //  PRIVATE VARIABLES  //
 /////////////////////////
 
-//int textLevelsLen = 67;
-//const char textLevels[] = "$@B%8&WM#*oahkbdpqwmZO0QLCJUYXzcvunxrjft/|()1{}[]?-_+~i!lI;:,\"^`\". ";
+// int textLevelsLen = 67;
+// const char textLevels[] = " .\"`^\",:;Il!i~+_-?][}{1)(|/tfjrxnuvczXYUJCLQ0OZmwqpdbkhao*#MW&8%B@$";
+
 int textLevelsLen = 11;
 const char textLevels[] = " .:^/*%&$#@";
+
+
+char * colors[8] = {
+  "\033[0;30m",
+  "\033[0;31m",
+  "\033[0;32m",
+  "\033[0;33m",
+  "\033[0;34m",
+  "\033[0;35m",
+  "\033[0;36m",
+  "\033[0;37m",
+};
+
+
 ////////////////////////
 //  PUBLIC FUNCTIONS  //
 ////////////////////////
@@ -86,11 +102,13 @@ void updateTextWindowSize(TextDisplay * td)
   if (td->text == NULL)
   {
     td->text = malloc(sizeof(unsigned char *) * td->height);
+    td->textColor = malloc(sizeof(unsigned char *) * td->height);
     td->textLen = td->height;
 
     for (int i = 0; i < td->textLen; i++)
     {
       td->text[i] = malloc(td->width);
+      td->textColor[i] = malloc(td->width);
     }
   }
 }
@@ -98,23 +116,31 @@ void updateTextWindowSize(TextDisplay * td)
 void freeText(TextDisplay * td)
 {
   if (td->text == NULL) return;
+  if (td->textColor == NULL) return;
   for (int i = 0; i < td->textLen; i++)
   {
     if (td->text[i] != NULL) free(td->text[i]);
+    if (td->textColor[i] != NULL) free(td->textColor[i]);
   }
 
   free(td->text);
+  free(td->textColor);
   td->text = NULL;
+  td->textColor = NULL;
 }
 
 void clearText(TextDisplay * td)
 {
   if (td->text == NULL) return;
+  if (td->textColor == NULL) return;
 
   for (int i = 0; i < td->textLen; i++)
   {
     if (td->text[i] == NULL) return;
     memset(td->text[i], ' ', td->width);
+
+    if (td->textColor[i] == NULL) return;
+    memset(td->textColor[i], ' ', td->width);
   }
 }
 
@@ -142,8 +168,8 @@ void rendererToText(TextDisplay * td, Render * render)
   {
     for (int x = 0; x < xSideLen; x++)//(int x = 0; x < (td->width - xoffset * 2); x++)
     {
-      double value = 0;
-
+      double massVal = 0;
+      double colorVal = 0;
       for (int i = 0; i < xScale; i++)
       {
         for (int k = 0; k < yScale; k++)
@@ -156,21 +182,31 @@ void rendererToText(TextDisplay * td, Render * render)
 
           int index = pixX + render->size * pixY;
 
-          double mass = render->massBuffer[index];
-          value += mass;
+          massVal += render->massBuffer[index];
+          colorVal += render->brightnessBuffer[index];
+
         }
       }
 
+      // if (value > 0)
+      // {
+      //   printf("%lf\n", value);
+      //   exit(1);
+      // }
       char charOut = ' ';
-      // value /= xScale * yScale;
-      value = MAX(0, MIN(MAX_MASS - 1, value));
-      value /= MAX_MASS;
-      value = pow(value, 0.5);
-      int level = value * textLevelsLen;// * ratio;
+      massVal /= xScale * yScale;
+      massVal = MAX(0, MIN(MAX_MASS - 1, massVal));
+      massVal /= MAX_MASS;
+      massVal = pow(massVal, 0.5);
+      int level = massVal * textLevelsLen;// * ratio;
       charOut = textLevels[level];
 
-      // if (y == 10 && x == 10) charOut = '&';
       td->text[y + yAsciiOffset][x + xAsciiOffset] = charOut;
+
+
+      colorVal /= xScale * yScale;
+      colorVal *= 255;
+      td->textColor[y + yAsciiOffset][x + xAsciiOffset] = colorVal;
     }
   }
 }
@@ -194,8 +230,22 @@ void printText(TextDisplay * td)
 
     for (int x = 0; x < td->width; x++)
     {
+      changeColor(td->textColor[y][x]);
       printf("%c", td->text[y][x]);
     }
     printf("\n");
   }
+}
+
+
+/////////////////////////
+//  PRIVATE FUNCTIONS  //
+/////////////////////////
+
+void changeColor(unsigned char val)
+{
+  double color = val / 255.0;
+  color *= 7;
+  char * strColor = colors[(int)color];
+  printf("%s", strColor);
 }

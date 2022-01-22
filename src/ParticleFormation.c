@@ -34,7 +34,7 @@ void ParticleFormation_free(ParticleFormation * pf)
   free(pf);
 }
 
-void ParticleFormation_cloudFormation(ParticleFormation * pf, unsigned int particleCount, Vec3 pos, Vec3 vel, double avgParticleMass, double avgDensity, double radius, double velRand, double massRand, double densityRand)
+void ParticleFormation_cloudFormation(ParticleFormation * pf, unsigned int particleCount, Vec3 pos, Vec3 vel, double avgParticleMass, double avgDensity, double radius, double velRand, double massRand, double densityRand, double heatInit)
 {
   if (particleCount == 0) return;
 
@@ -53,6 +53,8 @@ void ParticleFormation_cloudFormation(ParticleFormation * pf, unsigned int parti
 
     Particle_setMass(&pf->particles[i], avgParticleMass + (RAND_DOUBLE * avgParticleMass * massRand));
     Particle_setDensity(&pf->particles[i], avgDensity + (RAND_DOUBLE * avgDensity * densityRand));
+
+    pf->particles[i].heatJoules = heatInit;
   }
 
 }

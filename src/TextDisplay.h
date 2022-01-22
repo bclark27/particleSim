@@ -26,6 +26,7 @@ typedef struct TextDisplay
   int width;
   int height;
   char ** text;
+  char ** textColor;
   int textLen;
 
 } TextDisplay;

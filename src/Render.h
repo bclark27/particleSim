@@ -15,14 +15,16 @@ typedef struct Render
   unsigned int size;
   double * heatBuffer;
   double * transparencyBuffer;
+  double * brightnessBuffer;
   double * massBuffer;
+  double maxBright;
 } Render;
 
 /////////////////////////////
 //  FUNCTION DECLERATIONS  //
 /////////////////////////////
 
-Render * Render_init(unsigned int size);
+Render * Render_init(unsigned int size, double maxBright);
 void Render_free(Render * r);
 void Render_renderBuffers(Render * r, ParticleManager * pm, Camera * cam);
 
