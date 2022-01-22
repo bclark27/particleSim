@@ -30,7 +30,7 @@ int main()
 
 
   ParticleManager * pm = ParticleManager_init(10e20, 0.9);
-  ParticleManager_setTimeStep(pm, 10000000);
+  ParticleManager_setTimeStep(pm, 3000000);
 
   Camera * cam = Camera_init();
   Camera_setNearFarPlane(cam, 0.01, 10000000);
@@ -85,7 +85,7 @@ int main()
   Camera_setPosition(cam, &camPos);
   Vec3 angles = {0, 0, 0};
   double theta = 0;
-  double rotation = 0.1;
+  double rotation = 0.0;
 
 
   while(true)//for (int i = 0; i < 10000000; i++)

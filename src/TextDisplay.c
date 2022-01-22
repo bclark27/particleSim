@@ -206,7 +206,7 @@ void rendererToText(TextDisplay * td, Render * render)
 
       colorVal /= xScale * yScale;
       colorVal *= 255;
-      td->textColor[y + yAsciiOffset][x + xAsciiOffset] = colorVal;
+      td->textColor[y + yAsciiOffset][x + xAsciiOffset] = 150;//colorVal;
     }
   }
 }

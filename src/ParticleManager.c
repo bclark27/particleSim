@@ -120,6 +120,7 @@ void ParticleManager_updateParticles(ParticleManager * pm)
 
   preformGravityCalculations(pm, ot);
 
+
   ////////////////////////////////
   //  update particle velocity  //
   ////////////////////////////////
@@ -127,9 +128,7 @@ void ParticleManager_updateParticles(ParticleManager * pm)
   for (unsigned int i = 0; i < pm->length; i++)
   {
     if (!pm->particles[i].inUse) continue;
-    Particle_addNetVelocity(&pm->particles[i]);
   }
-
   // add delta heat to actuall heat via heat capacity
   Particle * p;
   for (unsigned int i = 0; i < pm->length; i++)
@@ -149,16 +148,17 @@ void ParticleManager_updateParticles(ParticleManager * pm)
   for (unsigned int i = 0; i < pm->length; i++)
   {
     p = &pm->particles[i];
-    if (!p->inUse) continue;
-    PhysicsUtils_updateParticalPosition(p, pm->timeStep);
+    if (!p->inUse) continue;;
     p->heatJoules += calculateHeatLoss(p, ot, pm->timeStep);
   }
 
-  // for (unsigned int i = 0; i < pm->length; i++)
-  // {
-  //   if (!pm->particles[i].inUse) continue;
-  //   PhysicsUtils_updateHeatEnergy(&pm->particles[i], pm->timeStep);
-  // }
+  for (unsigned int i = 0; i < pm->length; i++)
+  {
+    p = &pm->particles[i];
+    if (!p->inUse) continue;
+    Particle_addNetVelocity(p);
+    PhysicsUtils_updateParticalPosition(p, pm->timeStep);
+  }
 
   OctTree_free(ot, false);
 }

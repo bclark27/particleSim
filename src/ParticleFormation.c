@@ -55,6 +55,7 @@ void ParticleFormation_cloudFormation(ParticleFormation * pf, unsigned int parti
     Particle_setDensity(&pf->particles[i], avgDensity + (RAND_DOUBLE * avgDensity * densityRand));
 
     pf->particles[i].heatJoules = heatInit;
+    pf->particles[i].fixed = false;
   }
 
 }
